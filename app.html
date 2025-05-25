@@ -1,0 +1,2443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Sketch - Draw the Sound Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+        :root {
+            --bg-dark: #0f172a;
+            --bg-panel: rgba(15, 23, 42, 0.95);
+            --border-light: rgba(255,255,255,0.15);
+            --text-light: #e5e7eb;
+            --text-muted: #9ca3af;
+            --shadow-dark: 0 4px 20px rgba(0,0,0,0.4);
+            --transition-fast: 0.15s ease;
+            --transition-smooth: 0.3s ease;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            margin: 0;
+            background: var(--bg-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg-dark);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #doodlingZone {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            cursor: crosshair;
+            touch-action: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .panel {
+            position: absolute;
+            background: var(--bg-panel);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            backdrop-filter: blur(12px) saturate(160%);
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-dark);
+            transition: transform var(--transition-smooth), opacity var(--transition-smooth);
+        }
+
+        .drawing-tools-panel {
+            left: 8px;
+            top: 60px;
+            padding: 8px;
+            z-index: 12;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .drawing-tools-panel.collapsed {
+            transform: translateX(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            background: var(--bg-panel);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            backdrop-filter: blur(12px) saturate(160%);
+            border-radius: 8px;
+            padding: 8px;
+            border: 1px solid var(--border-light);
+            z-index: 13;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: var(--shadow-dark);
+            transition: background-color 0.2s ease, transform var(--transition-fast);
+        }
+
+        .toggle-btn:hover {
+            background: var(--bg-dark);
+            transform: scale(1.05);
+        }
+
+        .tools-toggle {
+            left: 8px;
+            top: 20px;
+        }
+
+        .controls-toggle {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .top-bar {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            padding: 0 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 15;
+            margin-top: 28px;
+            height: 40px;
+        }
+
+        .nav-button {
+            background: rgba(255, 255, 255, 0.08);
+            color: #cbd5e1;
+            border: 1px solid var(--border-light);
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform var(--transition-fast);
+            padding: 0;
+        }
+
+        .nav-button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.15); }
+        .nav-button:active:not(:disabled) { transform: scale(0.92); }
+        .nav-button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .title-counter-group {
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #appTitle {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        #soundCounterDisplay {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+
+        .controls-container {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(15, 23, 42, 0.9);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            backdrop-filter: blur(12px) saturate(160%);
+            border-radius: 16px;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.5);
+            border: 1px solid var(--border-light);
+            z-index: 10;
+            width: calc(100% - 24px);
+            max-width: 340px;
+            transition: transform var(--transition-smooth), opacity var(--transition-smooth);
+        }
+
+        .controls-container.collapsed {
+            transform: translateX(-50%) translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #gameInfoDisplay {
+            color: #f3f4f6;
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-height: 36px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .action-buttons-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .action-button {
+            flex-grow: 1;
+            padding: 7px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1px;
+            transition: background-color 0.2s ease, transform var(--transition-fast), box-shadow 0.2s ease;
+            border: 1px solid transparent;
+            cursor: pointer;
+            min-height: 46px;
+        }
+
+        .action-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: rgba(255,255,255,0.03) !important;
+            color: #6b7280 !important;
+            box-shadow: none !important;
+        }
+
+        .tool-section {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .tool-section-title {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 2px;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+        }
+
+        .color-option {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform var(--transition-fast), border-color var(--transition-fast);
+        }
+
+        .color-option:hover { transform: scale(1.1); }
+        .color-option.active { border-color: #ffffff; transform: scale(1.15); }
+
+        .brush-sizes {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+        }
+
+        .brush-size-option {
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color var(--transition-fast), transform var(--transition-fast);
+        }
+
+        .brush-size-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .brush-size-option.active {
+            background: rgba(139, 92, 246, 0.4);
+            border-color: rgba(139, 92, 246, 0.6);
+        }
+
+        .brush-preview {
+            background: currentColor;
+            border-radius: 50%;
+        }
+
+        .tool-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .tool-button {
+            flex: 1;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            transition: background-color var(--transition-fast), transform var(--transition-fast);
+        }
+
+        .tool-button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.02);
+        }
+
+        .tool-button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .score-display {
+            position: absolute;
+            right: 8px;
+            top: 60px;
+            background: rgba(15, 23, 42, 0.9);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            backdrop-filter: blur(12px) saturate(160%);
+            border-radius: 12px;
+            padding: 8px 12px;
+            border: 1px solid var(--border-light);
+            z-index: 12;
+            color: var(--text-light);
+            font-size: 0.8rem;
+            text-align: center;
+            box-shadow: var(--shadow-dark);
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .score-item:last-child { margin-bottom: 0; }
+
+        /* Button specific styles */
+        #playSoundButton {
+            background: rgba(76, 175, 80, 0.25);
+            color: #a5d6a7;
+            border-color: rgba(76, 175, 80, 0.4);
+        }
+        #playSoundButton:hover:not(:disabled) { background: rgba(76, 175, 80, 0.35); }
+
+        #giveHintButton {
+            background: rgba(251, 191, 36, 0.25);
+            color: #fcd34d;
+            border-color: rgba(251, 191, 36, 0.4);
+        }
+        #giveHintButton:hover:not(:disabled) { background: rgba(251, 191, 36, 0.35); }
+
+        #shareDrawingButton {
+            background: rgba(34, 197, 94, 0.25);
+            color: #86efac;
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+        #shareDrawingButton:hover:not(:disabled) { background: rgba(34, 197, 94, 0.35); }
+
+        #resetGameButton {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        #resetGameButton:hover:not(:disabled) { background: rgba(239, 68, 68, 0.3); }
+
+        #submitDrawingButton {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            color: white;
+            font-weight: 500;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            border-radius: 10px;
+            transition: transform var(--transition-fast), box-shadow 0.2s ease, background-image var(--transition-smooth);
+            border: none;
+            box-shadow: 0 3px 12px rgba(139, 92, 246, 0.25);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        #submitDrawingButton:hover:not(:disabled) {
+            background: linear-gradient(135deg, #a78bfa, #818cf8);
+            box-shadow: 0 5px 18px rgba(139, 92, 246, 0.35);
+        }
+
+        #submitDrawingButton:active:not(:disabled) {
+            transform: scale(0.97);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        .message-box {
+            position: absolute;
+            top: 75px;
+            left: 50%;
+            width: calc(100% - 40px);
+            max-width: 300px;
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            padding: 10px 15px;
+            -webkit-backdrop-filter: blur(8px) saturate(140%);
+            backdrop-filter: blur(8px) saturate(140%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            text-align: center;
+            transition: opacity 0.35s ease-out, transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transform: translate(-50%, -20px);
+        }
+
+        .message-box.show {
+            display: block;
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .category-selector {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.9);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            backdrop-filter: blur(12px) saturate(160%);
+            border-radius: 12px;
+            padding: 8px;
+            border: 1px solid var(--border-light);
+            z-index: 11;
+            display: none;
+            box-shadow: var(--shadow-dark);
+        }
+
+        .category-selector.show {
+            display: flex;
+            gap: 6px;
+        }
+
+        .category-button {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: background-color var(--transition-fast), transform var(--transition-fast);
+        }
+
+        .category-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.02);
+        }
+
+        .category-button.active {
+            background: rgba(139, 92, 246, 0.4);
+            border-color: rgba(139, 92, 246, 0.6);
+        }
+
+        .api-status {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(31, 41, 55, 0.85);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            backdrop-filter: blur(12px) saturate(160%);
+            border-radius: 8px;
+            padding: 6px 10px;
+            border: 1px solid rgba(255,255,255,0.12);
+            z-index: 12;
+            color: var(--text-light);
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: var(--shadow-dark);
+            cursor: pointer;
+        }
+
+        .api-status.enabled {
+            border-color: rgba(34, 197, 94, 0.4);
+            color: #86efac;
+        }
+
+        .api-status.disabled {
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+        }
+
+        .api-status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .fullscreen-confetti-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10001;
+            opacity: 1;
+            border-radius: 50%;
+        }
+
+        .fullscreen-confetti-particle.ribbon { border-radius: 3px; }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .api-key-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity var(--transition-smooth), visibility var(--transition-smooth);
+        }
+
+        .api-key-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .api-key-content {
+            background: rgba(31, 41, 55, 0.95);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-width: 400px;
+            width: 90%;
+            color: var(--text-light);
+            text-align: center;
+        }
+
+        .api-key-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #f3f4f6;
+        }
+
+        .api-key-description {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(17, 24, 39, 0.8);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            transition: border-color 0.2s ease;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: rgba(139, 92, 246, 0.6);
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+        }
+
+        .api-key-input::placeholder { color: #6b7280; }
+
+        .api-key-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .api-key-button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .api-key-button.primary {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            color: white;
+        }
+
+        .api-key-button.primary:hover {
+            background: linear-gradient(135deg, #a78bfa, #818cf8);
+            transform: translateY(-1px);
+        }
+
+        .api-key-button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .api-key-button.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .api-key-link {
+            color: #8b5cf6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .api-key-link:hover {
+            color: #a78bfa;
+            text-decoration: underline;
+        }
+
+        /* Responsive Design - Optimized Media Queries */
+        @media (min-width: 768px) {
+            .drawing-tools-panel { left: 16px; top: 120px; padding: 12px; gap: 12px; }
+            .toggle-btn { padding: 10px; font-size: 0.9rem; gap: 6px; }
+            .tools-toggle { left: 16px; top: 80px; }
+            .controls-toggle { bottom: 30px; right: 30px; }
+            .top-bar { top: 16px; padding: 0 20px; margin-top: 0; height: 50px; }
+            .nav-button { width: 40px; height: 40px; }
+            #appTitle { font-size: 1.25rem; }
+            #soundCounterDisplay { font-size: 0.75rem; }
+            .controls-container { bottom: 20px; padding: 16px; gap: 12px; max-width: 500px; }
+            #gameInfoDisplay { font-size: 1rem; min-height: 40px; }
+            .action-button { padding: 10px; font-size: 0.85rem; min-height: 52px; }
+            #submitDrawingButton { padding: 12px 18px; font-size: 0.95rem; margin-top: 8px; }
+            .score-display { right: 16px; top: 120px; padding: 12px 16px; font-size: 0.9rem; }
+            .message-box { top: 130px; max-width: 400px; padding: 12px 18px; font-size: 0.9rem; }
+            .category-selector { top: 180px; padding: 10px; gap: 8px; }
+            .category-button { padding: 8px 16px; font-size: 0.85rem; }
+            .api-status { top: 80px; padding: 8px 12px; font-size: 0.8rem; gap: 6px; }
+            .api-status-dot { width: 8px; height: 8px; }
+            .api-key-content { max-width: 500px; padding: 32px; }
+            .api-key-title { font-size: 1.5rem; margin-bottom: 16px; }
+            .api-key-description { font-size: 1rem; margin-bottom: 24px; }
+            .api-key-input { padding: 14px; font-size: 1rem; margin-bottom: 20px; }
+            .api-key-buttons { gap: 16px; }
+            .api-key-button { padding: 12px 24px; font-size: 1rem; }
+        }
+
+        @media (min-width: 1200px) {
+            .drawing-tools-panel { left: 24px; top: 140px; padding: 16px; gap: 16px; }
+            .tools-toggle { left: 24px; top: 100px; padding: 12px; font-size: 1rem; }
+            .controls-toggle { bottom: 40px; right: 40px; padding: 12px; font-size: 1rem; }
+            .top-bar { top: 20px; padding: 0 32px; height: 60px; }
+            .nav-button { width: 44px; height: 44px; }
+            #appTitle { font-size: 1.5rem; }
+            #soundCounterDisplay { font-size: 0.85rem; }
+            .controls-container { bottom: 24px; padding: 20px; gap: 16px; max-width: 600px; }
+            #gameInfoDisplay { font-size: 1.1rem; min-height: 44px; }
+            .action-button { padding: 12px; font-size: 0.9rem; min-height: 56px; }
+            #submitDrawingButton { padding: 14px 20px; font-size: 1rem; margin-top: 10px; }
+            .score-display { right: 24px; top: 140px; padding: 16px 20px; font-size: 1rem; }
+            .message-box { top: 150px; max-width: 500px; padding: 14px 20px; font-size: 1rem; }
+            .category-selector { top: 200px; padding: 12px; }
+            .category-button { padding: 10px 20px; font-size: 0.9rem; }
+            .api-status { top: 90px; padding: 10px 14px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+            <canvas id="doodlingZone"></canvas>
+        
+        <!-- Tools Toggle Button -->
+        <button class="tools-toggle" id="toolsToggle" title="Toggle Drawing Tools">
+            <span class="material-symbols-outlined">palette</span>
+            <span>Tools</span>
+        </button>
+
+        <!-- Controls Toggle Button -->
+        <button class="controls-toggle" id="controlsToggle" title="Toggle Game Controls">
+            <span class="material-symbols-outlined">gamepad</span>
+            <span>Controls</span>
+        </button>
+
+            <div class="top-bar">
+                <button id="previousSoundButton" class="nav-button" title="Previous Sound" disabled>
+                    <span class="material-symbols-outlined">arrow_back_ios</span>
+                </button>
+                <div class="title-counter-group">
+                    <div id="appTitle">Draw the Sound</div>
+                    <div id="soundCounterDisplay">Sound 0 / 0</div>
+                </div>
+                <button id="nextSoundButton" class="nav-button" title="Next Sound" disabled>
+                    <span class="material-symbols-outlined">arrow_forward_ios</span>
+                </button>
+            </div>
+
+        <!-- Drawing Tools Panel -->
+        <div class="drawing-tools-panel" id="drawingToolsPanel">
+            <div class="tool-section">
+                <div class="tool-section-title">Colors</div>
+                <div class="color-palette" id="colorPalette">
+                    <!-- Colors will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="tool-section">
+                <div class="tool-section-title">Brush</div>
+                <div class="brush-sizes" id="brushSizes">
+                    <!-- Brush sizes will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="tool-section">
+                <div class="tool-actions">
+                    <button class="tool-button" id="undoButton" title="Undo">
+                        <span class="material-symbols-outlined">undo</span>
+                    </button>
+                    <button class="tool-button" id="redoButton" title="Redo">
+                        <span class="material-symbols-outlined">redo</span>
+                    </button>
+                    <button class="tool-button" id="clearButton" title="Clear">
+                        <span class="material-symbols-outlined">clear</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Display -->
+        <div class="score-display" id="scoreDisplay">
+            <div class="score-item">
+                <span>Score:</span>
+                <span id="currentScore">0</span>
+            </div>
+            <div class="score-item">
+                <span>Best:</span>
+                <span id="bestScore">0</span>
+            </div>
+            <div class="score-item">
+                <span>Streak:</span>
+                <span id="currentStreak">0</span>
+            </div>
+        </div>
+
+        <!-- API Status Indicator -->
+        <div class="api-status" id="apiStatus">
+            <div class="api-status-dot"></div>
+            <span id="apiStatusText">AI Disabled</span>
+        </div>
+
+        <!-- Category Selector -->
+        <div class="category-selector" id="categorySelector">
+            <!-- Categories will be populated by JavaScript -->
+        </div>
+
+        <div class="controls-container" id="controlsContainer">
+                <div id="gameInfoDisplay">Click 'Play Sound' to start!</div>
+                <div class="action-buttons-row">
+                    <button id="playSoundButton" class="action-button" title="Play Sound">
+                        <span class="material-symbols-outlined">volume_up</span> <span>Play</span>
+                    </button>
+                    <button id="giveHintButton" class="action-button" title="✨ AI Hint ✨" disabled>
+                        <span class="material-symbols-outlined">lightbulb</span> <span>✨ AI Hint</span>
+                    </button>
+                <button id="shareDrawingButton" class="action-button" title="Share Drawing" disabled>
+                    <span class="material-symbols-outlined">share</span> <span>Share</span>
+                </button>
+                    <button id="resetGameButton" class="action-button" title="Reset Game">
+                        <span class="material-symbols-outlined">refresh</span> <span>Reset</span>
+                    </button>
+                </div>
+                <button id="submitDrawingButton" title="✨ Get AI Feedback & Submit ✨" disabled>
+                     <span class="material-symbols-outlined">auto_awesome</span> <span>✨ Get AI Feedback & Submit ✨</span>
+                </button>
+            </div>
+            <div class="message-box" id="messageBox"></div>
+    </div>
+
+    <!-- API Key Modal -->
+    <div class="api-key-modal" id="apiKeyModal">
+        <div class="api-key-content">
+            <div class="api-key-title">🤖 Enable AI Features</div>
+            <div class="api-key-description">
+                To unlock AI-powered drawing analysis and smart hints, you'll need a Gemini API key.
+                <br><br>
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="api-key-link">Get your free API key here →</a>
+            </div>
+            <input 
+                type="text" 
+                class="api-key-input" 
+                id="apiKeyInput" 
+                placeholder="Paste your Gemini API key here..."
+                autocomplete="off"
+            >
+            <div class="api-key-buttons">
+                <button class="api-key-button secondary" id="skipApiKey">Skip for now</button>
+                <button class="api-key-button primary" id="saveApiKey">Enable AI</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const CONFIG = {
+            // API key will be loaded from localStorage or prompted from user
+            getApiKey() {
+                return localStorage.getItem('gemini_api_key') || '';
+            },
+            
+            setApiKey(key) {
+                if (key && key.trim()) {
+                    localStorage.setItem('gemini_api_key', key.trim());
+                    return true;
+                }
+                return false;
+            },
+            
+            hasApiKey() {
+                const key = this.getApiKey();
+                return key && key.length > 10; // Basic validation
+            }
+        };
+
+        // --- API Key Management ---
+        const ApiKeyManager = {
+            modal: null,
+            input: null,
+            status: null,
+            statusText: null,
+
+            init() {
+                this.modal = document.getElementById('apiKeyModal');
+                this.input = document.getElementById('apiKeyInput');
+                this.status = document.getElementById('apiStatus');
+                this.statusText = document.getElementById('apiStatusText');
+
+                // Event listeners
+                document.getElementById('saveApiKey').addEventListener('click', () => this.saveApiKey());
+                document.getElementById('skipApiKey').addEventListener('click', () => this.skipApiKey());
+                
+                // Allow Enter key to save
+                this.input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.saveApiKey();
+                });
+
+                // Show modal if no API key on first load
+                if (!CONFIG.hasApiKey()) {
+                    setTimeout(() => this.showModal(), 1000);
+                }
+
+                this.updateStatus();
+            },
+
+            showModal() {
+                this.modal.classList.add('show');
+                this.input.focus();
+            },
+
+            hideModal() {
+                this.modal.classList.remove('show');
+            },
+
+            saveApiKey() {
+                const key = this.input.value.trim();
+                if (!key) {
+                    showMessageBox('Please enter an API key', 2000);
+                    return;
+                }
+
+                if (key.length < 10) {
+                    showMessageBox('API key seems too short. Please check and try again.', 3000);
+                    return;
+                }
+
+                if (CONFIG.setApiKey(key)) {
+                    this.hideModal();
+                    this.updateStatus();
+                    showMessageBox('✨ AI features enabled! You can now get intelligent feedback and hints.', 4000);
+                } else {
+                    showMessageBox('Failed to save API key. Please try again.', 2000);
+                }
+            },
+
+            skipApiKey() {
+                this.hideModal();
+                showMessageBox('AI features disabled. You can enable them later by clicking the AI status indicator.', 4000);
+            },
+
+            updateStatus() {
+                if (CONFIG.hasApiKey()) {
+                    this.status.className = 'api-status enabled';
+                    this.statusText.textContent = 'AI Enabled';
+                } else {
+                    this.status.className = 'api-status disabled';
+                    this.statusText.textContent = 'AI Disabled';
+                }
+            },
+
+            // Allow users to change API key by clicking status
+            toggleModal() {
+                if (this.modal.classList.contains('show')) {
+                    this.hideModal();
+                } else {
+                    this.input.value = CONFIG.getApiKey();
+                    this.showModal();
+                }
+            }
+        };
+
+        // --- Game Modules Organization ---
+        const GameModules = {
+            // Drawing Tools Module
+            DrawingTools: {
+                colors: [
+                    '#FFFFFF', '#000000', '#EF4444', '#3B82F6', 
+                    '#10B981', '#F59E0B', '#8B5CF6', '#EC4899',
+                    '#F97316', '#06B6D4', '#84CC16', '#F472B6'
+                ],
+                brushSizes: [2, 4, 6, 8],
+                currentColor: '#FFFFFF',
+                currentBrushSize: 4,
+                undoStack: [],
+                redoStack: [],
+                maxUndoSteps: 20,
+
+                init() {
+                    this.setupColorPalette();
+                    this.setupBrushSizes();
+                    this.setupToolActions();
+                },
+
+                setupColorPalette() {
+                    const colorPalette = document.getElementById('colorPalette');
+                    colorPalette.innerHTML = '';
+                    
+                    this.colors.forEach((color, index) => {
+                        const colorOption = document.createElement('div');
+                        colorOption.className = 'color-option';
+                        colorOption.style.backgroundColor = color;
+                        colorOption.title = `Color ${index + 1}`;
+                        
+                        if (color === this.currentColor) {
+                            colorOption.classList.add('active');
+                        }
+                        
+                        colorOption.addEventListener('click', () => {
+                            this.selectColor(color);
+                        });
+                        
+                        colorPalette.appendChild(colorOption);
+                    });
+                },
+
+                setupBrushSizes() {
+                    const brushSizes = document.getElementById('brushSizes');
+                    brushSizes.innerHTML = '';
+                    
+                    this.brushSizes.forEach(size => {
+                        const sizeOption = document.createElement('div');
+                        sizeOption.className = 'brush-size-option';
+                        sizeOption.title = `Brush size ${size}px`;
+                        
+                        const preview = document.createElement('div');
+                        preview.className = 'brush-preview';
+                        preview.style.width = `${Math.min(size * 2, 16)}px`;
+                        preview.style.height = `${Math.min(size * 2, 16)}px`;
+                        
+                        if (size === this.currentBrushSize) {
+                            sizeOption.classList.add('active');
+                        }
+                        
+                        sizeOption.appendChild(preview);
+                        sizeOption.addEventListener('click', () => {
+                            this.selectBrushSize(size);
+                        });
+                        
+                        brushSizes.appendChild(sizeOption);
+                    });
+                },
+
+                setupToolActions() {
+                    document.getElementById('undoButton').addEventListener('click', () => this.undo());
+                    document.getElementById('redoButton').addEventListener('click', () => this.redo());
+                    document.getElementById('clearButton').addEventListener('click', () => this.clearCanvas());
+                },
+
+                selectColor(color) {
+                    this.currentColor = color;
+                    ctx.strokeStyle = color;
+                    
+                    document.querySelectorAll('.color-option').forEach(option => {
+                        option.classList.remove('active');
+                        if (option.style.backgroundColor === color) {
+                            option.classList.add('active');
+                        }
+                    });
+                },
+
+                selectBrushSize(size) {
+                    this.currentBrushSize = size;
+                    ctx.lineWidth = size;
+                    
+                    document.querySelectorAll('.brush-size-option').forEach(option => {
+                        option.classList.remove('active');
+                    });
+                    event.currentTarget.classList.add('active');
+                },
+
+                saveState() {
+                    if (this.undoStack.length >= this.maxUndoSteps) {
+                        this.undoStack.shift();
+                    }
+                    this.undoStack.push(canvas.toDataURL());
+                    this.redoStack = [];
+                    this.updateToolButtons();
+                },
+
+                undo() {
+                    if (this.undoStack.length > 0) {
+                        this.redoStack.push(canvas.toDataURL());
+                        const previousState = this.undoStack.pop();
+                        this.restoreCanvas(previousState);
+                        this.updateToolButtons();
+                        updateButtonStates();
+                    }
+                },
+
+                redo() {
+                    if (this.redoStack.length > 0) {
+                        this.undoStack.push(canvas.toDataURL());
+                        const nextState = this.redoStack.pop();
+                        this.restoreCanvas(nextState);
+                        this.updateToolButtons();
+                        updateButtonStates();
+                    }
+                },
+
+                restoreCanvas(dataURL) {
+                    const img = new Image();
+                    img.onload = () => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0);
+                    };
+                    img.src = dataURL;
+                },
+
+                clearCanvas() {
+                    this.saveState();
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    updateButtonStates();
+                },
+
+                updateToolButtons() {
+                    document.getElementById('undoButton').disabled = this.undoStack.length === 0;
+                    document.getElementById('redoButton').disabled = this.redoStack.length === 0;
+                }
+            },
+
+            // Sound Library Module
+            SoundLibrary: {
+                categories: {
+                    'nature': {
+                        name: 'Nature',
+                        sounds: [
+                            { name: "Ocean Wave", freesoundUrl: "https://cdn.freesound.org/previews/412/412308_7707368-lq.mp3", hintText: "Think of the ocean, sand, and shells!", emoji: "🌊", expectedElements: ["waves", "water", "ocean", "beach"] },
+                            { name: "Rain", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "Drops falling from the sky!", emoji: "🌧️", expectedElements: ["drops", "rain", "clouds", "umbrella"] },
+                            { name: "Thunder", freesoundUrl: "https://cdn.freesound.org/previews/162/162391_2703022-lq.mp3", hintText: "A powerful sound from stormy skies!", emoji: "⚡", expectedElements: ["lightning", "storm", "clouds", "zigzag"] },
+                            { name: "Wind", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "Moving air through trees and leaves!", emoji: "💨", expectedElements: ["wind", "trees", "leaves", "movement"] },
+                            { name: "Forest Birds", freesoundUrl: "https://cdn.freesound.org/previews/725/725330_14889307-lq.mp3", hintText: "Multiple feathered friends singing in harmony!", emoji: "🌲", expectedElements: ["birds", "trees", "forest", "nature"] },
+                            { name: "Crackling Fire", freesoundUrl: "https://cdn.freesound.org/previews/563/563766_10756146-lq.mp3", hintText: "Warm flames dancing and popping!", emoji: "🔥", expectedElements: ["fire", "flames", "wood", "warmth"] }
+                        ]
+                    },
+                    'animals': {
+                        name: 'Animals',
+                        sounds: [
+                            { name: "Dog Barking", freesoundUrl: "https://cdn.freesound.org/previews/612/612857_13194336-lq.mp3", hintText: "Man's best friend, goes 'woof'!", emoji: "🐶", expectedElements: ["dog", "ears", "tail", "paws"] },
+                            { name: "Cat Meow", freesoundUrl: "https://cdn.freesound.org/previews/732/732520_13416215-lq.mp3", hintText: "A furry feline's call.", emoji: "🐱", expectedElements: ["cat", "whiskers", "ears", "tail"] },
+                            { name: "Bird Chirp", freesoundUrl: "https://cdn.freesound.org/previews/725/725330_14889307-lq.mp3", hintText: "A feathered friend singing in a tree.", emoji: "🐦", expectedElements: ["bird", "wings", "beak", "feathers"] },
+                            { name: "Cow Moo", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "A farm animal that gives milk!", emoji: "🐄", expectedElements: ["cow", "udder", "horns", "spots"] },
+                            { name: "Horse Galloping", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "Hooves thundering across the ground!", emoji: "🐎", expectedElements: ["horse", "hooves", "running", "mane"] },
+                            { name: "Owl Hooting", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "A wise night bird's haunting call!", emoji: "🦉", expectedElements: ["owl", "eyes", "feathers", "night"] }
+                        ]
+                    },
+                    'music': {
+                        name: 'Music',
+                        sounds: [
+                            { name: "Guitar Strum", freesoundUrl: "https://cdn.freesound.org/previews/188/188037_3403708-lq.mp3", hintText: "A musical instrument with strings.", emoji: "🎸", expectedElements: ["guitar", "strings", "music", "notes"] },
+                            { name: "Piano", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "Black and white keys make beautiful music!", emoji: "🎹", expectedElements: ["piano", "keys", "music", "notes"] },
+                            { name: "Drums", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "Beat the rhythm with sticks!", emoji: "🥁", expectedElements: ["drums", "sticks", "rhythm", "beat"] },
+                            { name: "Violin", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "Strings played with a bow!", emoji: "🎻", expectedElements: ["violin", "bow", "strings", "music"] },
+                            { name: "Church Bells", freesoundUrl: "https://cdn.freesound.org/previews/625/625085_13194336-lq.mp3", hintText: "Sacred chimes ringing from a tower!", emoji: "🔔", expectedElements: ["bells", "church", "tower", "chimes"] },
+                            { name: "Counter Bell", freesoundUrl: "https://cdn.freesound.org/previews/415/415510_13194336-lq.mp3", hintText: "A small bell you press for service!", emoji: "🛎️", expectedElements: ["bell", "counter", "service", "ding"] }
+                        ]
+                    },
+                    'everyday': {
+                        name: 'Everyday',
+                        sounds: [
+                            { name: "Chemistry Lab", freesoundUrl: "https://cdn.freesound.org/previews/504/504139_10756146-lq.mp3", hintText: "Bubbling beakers and science experiments.", emoji: "🧪", expectedElements: ["beaker", "bubbles", "science", "lab"] },
+                            { name: "Book Page Turn", freesoundUrl: "https://cdn.freesound.org/previews/248/248045_4361022-lq.mp3", hintText: "Flipping through stories and knowledge.", emoji: "📖", expectedElements: ["book", "pages", "reading", "text"] },
+                            { name: "Water Splash", freesoundUrl: "https://cdn.freesound.org/previews/532/532888_8919922-lq.mp3", hintText: "Something just hit the water!", emoji: "💧", expectedElements: ["splash", "water", "drops", "ripples"] },
+                            { name: "Door Creak", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "An old door opening slowly!", emoji: "🚪", expectedElements: ["door", "hinges", "opening", "wood"] },
+                            { name: "Footsteps on Wood", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "Someone walking across wooden floors!", emoji: "👣", expectedElements: ["footsteps", "walking", "wood", "floor"] },
+                            { name: "Paper Shredder", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "A machine cutting paper into strips!", emoji: "📄", expectedElements: ["shredder", "paper", "cutting", "machine"] },
+                            { name: "School Bell", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "Time for class or recess!", emoji: "🏫", expectedElements: ["bell", "school", "class", "education"] },
+                            { name: "Water Dripping", freesoundUrl: "https://cdn.freesound.org/previews/316/316847_5123451-lq.mp3", hintText: "Drops falling one by one!", emoji: "💧", expectedElements: ["drip", "water", "drops", "leak"] }
+                        ]
+                    }
+                },
+                currentCategory: 'nature',
+                cache: {},
+
+                init() {
+                    this.setupCategorySelector();
+                    this.loadCategory('nature');
+                },
+
+                setupCategorySelector() {
+                    const categorySelector = document.getElementById('categorySelector');
+                    categorySelector.innerHTML = '';
+                    
+                    Object.entries(this.categories).forEach(([key, category]) => {
+                        const button = document.createElement('button');
+                        button.className = 'category-button';
+                        button.textContent = category.name;
+                        button.addEventListener('click', () => this.loadCategory(key));
+                        
+                        if (key === this.currentCategory) {
+                            button.classList.add('active');
+                        }
+                        
+                        categorySelector.appendChild(button);
+                    });
+                },
+
+                loadCategory(categoryKey) {
+                    this.currentCategory = categoryKey;
+                    soundChallenges.length = 0;
+                    soundChallenges.push(...this.categories[categoryKey].sounds);
+                    
+                    document.querySelectorAll('.category-button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    event.target.classList.add('active');
+                    
+                    resetGame();
+                },
+
+                getAllSounds() {
+                    const allSounds = [];
+                    Object.values(this.categories).forEach(category => {
+                        allSounds.push(...category.sounds);
+                    });
+                    return allSounds;
+                },
+
+                async cacheSound(url) {
+                    if (!this.cache[url]) {
+                        try {
+                            const response = await fetch(url);
+                            const blob = await response.blob();
+                            this.cache[url] = URL.createObjectURL(blob);
+                        } catch (error) {
+                            console.warn('Failed to cache sound:', url, error);
+                        }
+                    }
+                    return this.cache[url] || url;
+                }
+            },
+
+            // Scoring Module
+            Scoring: {
+                currentScore: 0,
+                bestScore: 0,
+                currentStreak: 0,
+                totalGames: 0,
+
+                init() {
+                    this.loadScores();
+                    this.updateDisplay();
+                },
+
+                calculateScore(drawingAnalysis, hintUsed) {
+                    let baseScore = 100;
+                    
+                    // Accuracy score (0-40 points)
+                    const accuracyScore = Math.min(40, drawingAnalysis.accuracy * 40);
+                    
+                    // Creativity score (0-30 points)
+                    const creativityScore = Math.min(30, drawingAnalysis.creativity * 30);
+                    
+                    // Detail score (0-30 points)
+                    const detailScore = Math.min(30, drawingAnalysis.detail * 30);
+                    
+                    // Hint penalty
+                    const hintPenalty = hintUsed ? 20 : 0;
+                    
+                    const totalScore = Math.max(0, accuracyScore + creativityScore + detailScore - hintPenalty);
+                    
+                    return {
+                        total: Math.round(totalScore),
+                        breakdown: {
+                            accuracy: Math.round(accuracyScore),
+                            creativity: Math.round(creativityScore),
+                            detail: Math.round(detailScore),
+                            hintPenalty: hintPenalty
+                        }
+                    };
+                },
+
+                addScore(score) {
+                    this.currentScore += score;
+                    if (score > 70) {
+                        this.currentStreak++;
+                    } else {
+                        this.currentStreak = 0;
+                    }
+                    
+                    if (this.currentScore > this.bestScore) {
+                        this.bestScore = this.currentScore;
+                    }
+                    
+                    this.saveScores();
+                    this.updateDisplay();
+                },
+
+                resetScore() {
+                    this.currentScore = 0;
+                    this.currentStreak = 0;
+                    this.totalGames++;
+                    this.saveScores();
+                    this.updateDisplay();
+                },
+
+                updateDisplay() {
+                    document.getElementById('currentScore').textContent = this.currentScore;
+                    document.getElementById('bestScore').textContent = this.bestScore;
+                    document.getElementById('currentStreak').textContent = this.currentStreak;
+                },
+
+                saveScores() {
+                    const scores = {
+                        currentScore: this.currentScore,
+                        bestScore: this.bestScore,
+                        currentStreak: this.currentStreak,
+                        totalGames: this.totalGames
+                    };
+                    localStorage.setItem('drawSoundScores', JSON.stringify(scores));
+                },
+
+                loadScores() {
+                    const saved = localStorage.getItem('drawSoundScores');
+                    if (saved) {
+                        const scores = JSON.parse(saved);
+                        this.currentScore = scores.currentScore || 0;
+                        this.bestScore = scores.bestScore || 0;
+                        this.currentStreak = scores.currentStreak || 0;
+                        this.totalGames = scores.totalGames || 0;
+                    }
+                }
+            },
+
+            // Storage Module
+            Storage: {
+                saveDrawing(soundName, drawingData, score) {
+                    const drawings = this.getDrawings();
+                    const drawing = {
+                        id: Date.now(),
+                        soundName: soundName,
+                        data: drawingData,
+                        score: score,
+                        timestamp: new Date().toISOString(),
+                        category: GameModules.SoundLibrary.currentCategory
+                    };
+                    
+                    drawings.push(drawing);
+                    
+                    // Keep only last 50 drawings
+                    if (drawings.length > 50) {
+                        drawings.splice(0, drawings.length - 50);
+                    }
+                    
+                    localStorage.setItem('drawSoundDrawings', JSON.stringify(drawings));
+                    return drawing.id;
+                },
+
+                getDrawings() {
+                    const saved = localStorage.getItem('drawSoundDrawings');
+                    return saved ? JSON.parse(saved) : [];
+                },
+
+                getDrawing(id) {
+                    const drawings = this.getDrawings();
+                    return drawings.find(d => d.id === id);
+                },
+
+                deleteDrawing(id) {
+                    const drawings = this.getDrawings();
+                    const filtered = drawings.filter(d => d.id !== id);
+                    localStorage.setItem('drawSoundDrawings', JSON.stringify(filtered));
+                },
+
+                exportDrawing(id) {
+                    const drawing = this.getDrawing(id);
+                    if (drawing) {
+                        const link = document.createElement('a');
+                        link.download = `drawing-${drawing.soundName}-${drawing.id}.png`;
+                        link.href = drawing.data;
+                        link.click();
+                    }
+                },
+
+                shareDrawing(id) {
+                    const drawing = this.getDrawing(id);
+                    if (drawing && navigator.share) {
+                        // Convert data URL to blob for sharing
+                        fetch(drawing.data)
+                            .then(res => res.blob())
+                            .then(blob => {
+                                const file = new File([blob], `drawing-${drawing.soundName}.png`, { type: 'image/png' });
+                                navigator.share({
+                                    title: `My drawing of "${drawing.soundName}"`,
+                                    text: `I drew this for the sound "${drawing.soundName}" and scored ${drawing.score} points!`,
+                                    files: [file]
+                                });
+                            })
+                            .catch(err => {
+                                console.error('Error sharing:', err);
+                                this.fallbackShare(drawing);
+                            });
+                    } else if (drawing) {
+                        this.fallbackShare(drawing);
+                    }
+                },
+
+                fallbackShare(drawing) {
+                    // Fallback sharing method
+                    const shareText = `I drew this for the sound "${drawing.soundName}" and scored ${drawing.score} points! 🎨`;
+                    
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(shareText).then(() => {
+                            showMessageBox('Share text copied to clipboard!', 2000);
+                        });
+                    } else {
+                        // Create a temporary download link
+                        this.exportDrawing(drawing.id);
+                        showMessageBox('Drawing downloaded! Share it manually.', 3000);
+                    }
+                }
+            }
+        };
+
+        // --- Optimized DOM Element References (Cached) ---
+        const DOM = {
+            playSoundButton: document.getElementById('playSoundButton'),
+            giveHintButton: document.getElementById('giveHintButton'),
+            resetGameButton: document.getElementById('resetGameButton'),
+            shareDrawingButton: document.getElementById('shareDrawingButton'),
+            previousSoundButton: document.getElementById('previousSoundButton'),
+            nextSoundButton: document.getElementById('nextSoundButton'),
+            canvas: document.getElementById('doodlingZone'),
+            messageBox: document.getElementById('messageBox'),
+            gameInfoDisplay: document.getElementById('gameInfoDisplay'),
+            soundCounterDisplay: document.getElementById('soundCounterDisplay'),
+            submitDrawingButton: document.getElementById('submitDrawingButton'),
+            gameContainer: document.getElementById('game-container'),
+            toolsToggle: document.getElementById('toolsToggle'),
+            drawingToolsPanel: document.getElementById('drawingToolsPanel'),
+            controlsToggle: document.getElementById('controlsToggle'),
+            controlsContainer: document.getElementById('controlsContainer'),
+            colorPalette: document.getElementById('colorPalette'),
+            brushSizeOptions: null, // Will be cached on first use
+            toolButtons: null // Will be cached on first use
+        };
+
+        // Cache canvas context
+        const ctx = DOM.canvas.getContext('2d');
+
+        // --- Optimized Constants ---
+        const CONSTANTS = {
+            MESSAGE_DURATION: 3000,
+            CANVAS_BLANK_CHECK_TIMEOUT: 100,
+            RESPONSIVE_BREAKPOINTS: {
+                MOBILE: 768,
+                DESKTOP: 1200
+            },
+            GRID_CONFIGS: {
+                MOBILE: { columns: 'repeat(4, 1fr)', gap: '4px', colorSize: '24px', brushSize: '28px' },
+                TABLET: { columns: 'repeat(3, 1fr)', gap: '6px', colorSize: '28px', brushSize: '32px' },
+                DESKTOP: { columns: 'repeat(4, 1fr)', gap: '8px', colorSize: '32px', brushSize: '36px' }
+            }
+        };
+
+        // --- Optimized State Variables ---
+        let gameState = {
+            drawing: false,
+            messageBoxTimeout: null,
+            currentChallenge: null,
+            hintUsed: false,
+            audioPlayer: null,
+            currentSoundIndex: -1,
+            soundPlayedForCurrentChallenge: false,
+            toneJsStarted: false,
+            isAudioLoading: false,
+            isAIGenerationInProgress: false,
+            lastDrawingId: null,
+            toolsPanelVisible: true,
+            controlsPanelVisible: true
+        };
+
+        // --- Sound Challenge Data ---
+        const soundChallenges = [];
+        let totalSounds = 0;
+
+        // --- Optimized Toggle Functions ---
+        const toggleDrawingTools = () => {
+            gameState.toolsPanelVisible = !gameState.toolsPanelVisible;
+            const panel = DOM.drawingToolsPanel;
+            const toggle = DOM.toolsToggle;
+            const textElement = toggle.querySelector('span:last-child');
+            
+            if (gameState.toolsPanelVisible) {
+                panel.classList.remove('collapsed');
+                textElement.textContent = 'Hide';
+            } else {
+                panel.classList.add('collapsed');
+                textElement.textContent = 'Tools';
+            }
+        };
+
+        const toggleControls = () => {
+            gameState.controlsPanelVisible = !gameState.controlsPanelVisible;
+            const container = DOM.controlsContainer;
+            const toggle = DOM.controlsToggle;
+            const textElement = toggle.querySelector('span:last-child');
+            
+            if (gameState.controlsPanelVisible) {
+                container.classList.remove('collapsed');
+                textElement.textContent = 'Hide';
+            } else {
+                container.classList.add('collapsed');
+                textElement.textContent = 'Controls';
+            }
+        };
+
+        // --- Optimized Responsive Drawing Tools ---
+        const updateResponsiveDrawingTools = (() => {
+            let lastWidth = 0;
+            
+            return () => {
+                const currentWidth = window.innerWidth;
+                if (Math.abs(currentWidth - lastWidth) < 50) return; // Debounce small changes
+                lastWidth = currentWidth;
+
+                // Cache elements on first use
+                if (!DOM.brushSizeOptions) {
+                    DOM.brushSizeOptions = document.querySelectorAll('.brush-size-option');
+                    DOM.toolButtons = document.querySelectorAll('.tool-button');
+                }
+
+                const colorOptions = DOM.colorPalette.querySelectorAll('.color-option');
+                let config;
+
+                if (currentWidth >= CONSTANTS.RESPONSIVE_BREAKPOINTS.DESKTOP) {
+                    config = CONSTANTS.GRID_CONFIGS.DESKTOP;
+                } else if (currentWidth >= CONSTANTS.RESPONSIVE_BREAKPOINTS.MOBILE) {
+                    config = CONSTANTS.GRID_CONFIGS.TABLET;
+                } else {
+                    config = CONSTANTS.GRID_CONFIGS.MOBILE;
+                }
+
+                // Apply styles efficiently
+                const palette = DOM.colorPalette;
+                palette.style.gridTemplateColumns = config.columns;
+                palette.style.gap = config.gap;
+
+                // Batch DOM updates
+                colorOptions.forEach(option => {
+                    option.style.width = config.colorSize;
+                    option.style.height = config.colorSize;
+                });
+
+                DOM.brushSizeOptions.forEach(option => {
+                    option.style.width = config.brushSize;
+                    option.style.height = config.brushSize;
+                });
+
+                if (currentWidth >= CONSTANTS.RESPONSIVE_BREAKPOINTS.MOBILE && currentWidth < CONSTANTS.RESPONSIVE_BREAKPOINTS.DESKTOP) {
+                    DOM.toolButtons.forEach(button => {
+                        button.style.padding = '8px';
+                        button.style.fontSize = '0.8rem';
+                    });
+                } else if (currentWidth < CONSTANTS.RESPONSIVE_BREAKPOINTS.MOBILE) {
+                    DOM.toolButtons.forEach(button => {
+                        button.style.padding = '6px';
+                        button.style.fontSize = '0.7rem';
+                    });
+                }
+            };
+        })();
+
+        // --- Optimized Canvas Functions ---
+        const resizeCanvas = (() => {
+            let resizeTimeout;
+            
+            return () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    const containerWidth = window.innerWidth;
+                    const containerHeight = window.innerHeight;
+
+                    let oldDrawing = null;
+                    if (DOM.canvas.width > 0 && DOM.canvas.height > 0) {
+                        try { 
+                            oldDrawing = ctx.getImageData(0, 0, DOM.canvas.width, DOM.canvas.height); 
+                        } catch (e) { 
+                            console.warn("Could not get image data:", e); 
+                        }
+                    }
+                    
+                    DOM.canvas.width = containerWidth;
+                    DOM.canvas.height = containerHeight;
+                    
+                    // Restore canvas context properties
+                    ctx.strokeStyle = GameModules.DrawingTools.currentColor;
+                    ctx.lineWidth = GameModules.DrawingTools.currentBrushSize;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+
+                    if (oldDrawing) {
+                        try { 
+                            ctx.putImageData(oldDrawing, 0, 0); 
+                        } catch (e) { 
+                            console.warn("Could not restore image data:", e); 
+                        }
+                    }
+                }, 100); // Debounce resize events
+            };
+        })();
+
+        // --- Optimized Utility Functions ---
+        const ensureToneStarted = async () => {
+            if (!gameState.toneJsStarted) {
+                try {
+                    await Tone.start();
+                    gameState.toneJsStarted = true;
+                    console.log("Tone.js context started successfully");
+                } catch (e) {
+                    console.error("Error starting Tone.js context:", e);
+                    showMessageBox("Could not initialize audio. Please refresh or try a different browser.");
+                    DOM.playSoundButton.disabled = true;
+                    DOM.giveHintButton.disabled = true;
+                }
+            }
+        };
+
+        const showMessageBox = (() => {
+            return (message, duration = CONSTANTS.MESSAGE_DURATION) => {
+                clearTimeout(gameState.messageBoxTimeout);
+                DOM.messageBox.innerHTML = message;
+                DOM.messageBox.style.display = 'block';
+                void DOM.messageBox.offsetWidth; // Force reflow
+                DOM.messageBox.classList.add('show');
+                
+                if (duration > 0) {
+                    gameState.messageBoxTimeout = setTimeout(() => {
+                        DOM.messageBox.classList.remove('show');
+                        setTimeout(() => {
+                            if (!DOM.messageBox.classList.contains('show')) {
+                                DOM.messageBox.style.display = 'none';
+                            }
+                        }, 350);
+                    }, duration);
+                }
+            };
+        })();
+
+        // --- Optimized Canvas Blank Check ---
+        const isCanvasBlank = (() => {
+            let blankCanvasData = null;
+            
+            return (canvasToCheck) => {
+                if (!canvasToCheck || canvasToCheck.width === 0 || canvasToCheck.height === 0) return true;
+                
+                // Create blank canvas data only once
+                if (!blankCanvasData) {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = canvasToCheck.width;
+                    tempCanvas.height = canvasToCheck.height;
+                    blankCanvasData = tempCanvas.toDataURL();
+                }
+                
+                return canvasToCheck.toDataURL() === blankCanvasData;
+            };
+        })();
+
+        // --- Optimized Sound Counter Update ---
+        const updateSoundCounter = () => {
+            totalSounds = soundChallenges.length;
+            const current = gameState.currentSoundIndex;
+            
+            if (current >= 0 && current < totalSounds) {
+                DOM.soundCounterDisplay.textContent = `Sound ${current + 1} / ${totalSounds}`;
+            } else if (current >= totalSounds) {
+                DOM.soundCounterDisplay.textContent = 'Category Complete!';
+            } else {
+                DOM.soundCounterDisplay.textContent = `Sound - / ${totalSounds}`;
+            }
+        };
+
+        // --- DOM Element References ---
+        const playSoundButton = document.getElementById('playSoundButton');
+        const giveHintButton = document.getElementById('giveHintButton');
+        const resetGameButton = document.getElementById('resetGameButton'); 
+        const shareDrawingButton = document.getElementById('shareDrawingButton');
+        const previousSoundButton = document.getElementById('previousSoundButton');
+        const nextSoundButton = document.getElementById('nextSoundButton');
+        const canvas = document.getElementById('doodlingZone');
+        const ctx = canvas.getContext('2d');
+        const messageBox = document.getElementById('messageBox');
+        const gameInfoDisplay = document.getElementById('gameInfoDisplay');
+        const soundCounterDisplay = document.getElementById('soundCounterDisplay');
+        const submitDrawingButton = document.getElementById('submitDrawingButton');
+        const gameContainer = document.getElementById('game-container');
+        const toolsToggle = document.getElementById('toolsToggle');
+        const drawingToolsPanel = document.getElementById('drawingToolsPanel');
+        const controlsToggle = document.getElementById('controlsToggle');
+        const controlsContainer = document.getElementById('controlsContainer');
+
+        let drawing = false; 
+        let messageBoxTimeout;
+        let currentChallenge = null; 
+        let hintUsed = false;
+        let audioPlayer = null; 
+        let currentSoundIndex = -1; 
+        let soundPlayedForCurrentChallenge = false; 
+        let toneJsStarted = false;
+        let isAudioLoading = false; 
+        let isAIGenerationInProgress = false;
+        let lastDrawingId = null;
+        let toolsPanelVisible = true;
+        let controlsPanelVisible = true;
+
+        // --- Sound Challenge Data (will be populated by SoundLibrary) ---
+        const soundChallenges = [];
+        let totalSounds = 0;
+
+        // --- Drawing Tools Toggle ---
+        function toggleDrawingTools() {
+            toolsPanelVisible = !toolsPanelVisible;
+            if (toolsPanelVisible) {
+                drawingToolsPanel.classList.remove('collapsed');
+                toolsToggle.querySelector('span:last-child').textContent = 'Hide';
+            } else {
+                drawingToolsPanel.classList.add('collapsed');
+                toolsToggle.querySelector('span:last-child').textContent = 'Tools';
+            }
+        }
+
+        // --- Controls Toggle ---
+        function toggleControls() {
+            controlsPanelVisible = !controlsPanelVisible;
+            if (controlsPanelVisible) {
+                controlsContainer.classList.remove('collapsed');
+                controlsToggle.querySelector('span:last-child').textContent = 'Hide';
+            } else {
+                controlsContainer.classList.add('collapsed');
+                controlsToggle.querySelector('span:last-child').textContent = 'Controls';
+            }
+        }
+
+        // Event listeners for toggle functions
+        DOM.toolsToggle.addEventListener('click', toggleDrawingTools);
+        DOM.controlsToggle.addEventListener('click', toggleControls);
+
+        // Update the responsive adjustments for drawing tools
+        const updateResponsiveDrawingTools = () => {
+            const colorPalette = document.getElementById('colorPalette');
+            const colorOptions = colorPalette.querySelectorAll('.color-option');
+            const brushSizeOptions = document.querySelectorAll('.brush-size-option');
+            const toolButtons = document.querySelectorAll('.tool-button');
+
+            if (window.innerWidth >= 1200) {
+                // Large screens
+                colorPalette.style.gridTemplateColumns = 'repeat(4, 1fr)';
+                colorPalette.style.gap = '8px';
+                colorOptions.forEach(option => {
+                    option.style.width = '32px';
+                    option.style.height = '32px';
+                });
+                brushSizeOptions.forEach(option => {
+                    option.style.width = '36px';
+                    option.style.height = '36px';
+                });
+            } else if (window.innerWidth >= 768) {
+                // Medium screens
+                colorPalette.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                colorPalette.style.gap = '6px';
+                colorOptions.forEach(option => {
+                    option.style.width = '28px';
+                    option.style.height = '28px';
+                });
+                brushSizeOptions.forEach(option => {
+                    option.style.width = '32px';
+                    option.style.height = '32px';
+                });
+                toolButtons.forEach(button => {
+                    button.style.padding = '8px';
+                    button.style.fontSize = '0.8rem';
+                });
+            } else {
+                // Small screens - reset to default
+                colorPalette.style.gridTemplateColumns = 'repeat(4, 1fr)';
+                colorPalette.style.gap = '4px';
+                colorOptions.forEach(option => {
+                    option.style.width = '24px';
+                    option.style.height = '24px';
+                });
+                brushSizeOptions.forEach(option => {
+                    option.style.width = '28px';
+                    option.style.height = '28px';
+                });
+                toolButtons.forEach(button => {
+                    button.style.padding = '6px';
+                    button.style.fontSize = '0.7rem';
+                });
+            }
+        };
+
+        // --- Doodling Zone ---
+        function resizeCanvas() {
+            const containerWidth = window.innerWidth;
+            const containerHeight = window.innerHeight;
+
+            let oldDrawing = null;
+            if (canvas.width > 0 && canvas.height > 0) {
+                try { oldDrawing = ctx.getImageData(0, 0, canvas.width, canvas.height); }
+                catch (e) { console.warn("Could not get image data (tainted or zero-size).", e); }
+            }
+            
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
+            
+            ctx.strokeStyle = GameModules.DrawingTools.currentColor;
+            ctx.lineWidth = GameModules.DrawingTools.currentBrushSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (oldDrawing) {
+                try { ctx.putImageData(oldDrawing, 0, 0); }
+                catch (e) { console.warn("Could not restore image data.", e); }
+            }
+        }
+
+        // --- Utility Functions ---
+        async function ensureToneStarted() {
+            if (!toneJsStarted) {
+                try {
+                    await Tone.start();
+                    toneJsStarted = true;
+                    console.log("Tone.js context started successfully by user interaction.");
+                } catch (e) {
+                    console.error("Error starting Tone.js context:", e);
+                    showMessageBox("Could not initialize audio. Please refresh or try a different browser.");
+                    playSoundButton.disabled = true; 
+                    giveHintButton.disabled = true;
+                }
+            }
+        }
+
+        function showMessageBox(message, duration = 3000) {
+            clearTimeout(messageBoxTimeout);
+            messageBox.innerHTML = message;
+            messageBox.style.display = 'block'; 
+            void messageBox.offsetWidth; 
+            messageBox.classList.add('show');
+            if (duration > 0) {
+                messageBoxTimeout = setTimeout(() => {
+                    messageBox.classList.remove('show');
+                    setTimeout(() => { if (!messageBox.classList.contains('show')) messageBox.style.display = 'none'; }, 350);
+                }, duration);
+            }
+        }
+
+        function isCanvasBlank(canvasToCheck) {
+            const tempCompCanvas = document.createElement('canvas');
+            if (!canvasToCheck || canvasToCheck.width === 0 || canvasToCheck.height === 0) return true;
+            tempCompCanvas.width = canvasToCheck.width;
+            tempCompCanvas.height = canvasToCheck.height;
+            return canvasToCheck.toDataURL() === tempCompCanvas.toDataURL();
+        }
+        
+        function updateSoundCounter() {
+            totalSounds = soundChallenges.length;
+            if (currentSoundIndex >= 0 && currentSoundIndex < totalSounds) {
+                soundCounterDisplay.textContent = `Sound ${currentSoundIndex + 1} / ${totalSounds}`;
+            } else if (currentSoundIndex >= totalSounds) {
+                soundCounterDisplay.textContent = `Category Complete!`;
+            } else {
+                soundCounterDisplay.textContent = `Sound - / ${totalSounds}`;
+            }
+        }
+        
+        function updatePlayButtonUI(state) { 
+            const iconEl = DOM.playSoundButton.querySelector('.material-symbols-outlined');
+            const textEl = DOM.playSoundButton.querySelector('span:last-child');
+
+            switch (state) {
+                case "loading":
+                    iconEl.textContent = "hourglass_empty";
+                    if(textEl) textEl.textContent = "Loading";
+                    DOM.playSoundButton.disabled = true;
+                    break;
+                case "playing": 
+                    iconEl.textContent = "pause";
+                    if(textEl) textEl.textContent = "Pause";
+                    DOM.playSoundButton.disabled = false;
+                    break;
+                case "paused": 
+                    iconEl.textContent = "play_arrow";
+                    if(textEl) textEl.textContent = "Resume";
+                    DOM.playSoundButton.disabled = false;
+                    break;
+                case "replay": 
+                    iconEl.textContent = "replay";
+                    if(textEl) textEl.textContent = "Replay";
+                    DOM.playSoundButton.disabled = false;
+                    break;
+                case "play": 
+                default:
+                    iconEl.textContent = "volume_up";
+                    if(textEl) textEl.textContent = "Play";
+                    DOM.playSoundButton.disabled = !currentChallenge || currentSoundIndex >= totalSounds || isAudioLoading || isAIGenerationInProgress;
+                    break;
+            }
+        }
+
+        function updateButtonStates() {
+            const commonDisableCondition = isAIGenerationInProgress || isAudioLoading;
+            previousSoundButton.disabled = currentSoundIndex <= 0 || commonDisableCondition;
+            nextSoundButton.disabled = (currentSoundIndex >= totalSounds - 1 || currentSoundIndex === -1) || commonDisableCondition;
+            
+            if (currentChallenge) {
+                if (isAudioLoading) {
+                    updatePlayButtonUI("loading");
+                } else if (!audioPlayer || audioPlayer.state === "stopped") {
+                     updatePlayButtonUI(soundPlayedForCurrentChallenge ? "replay" : "play");
+                } else if (audioPlayer.state === "started") {
+                    updatePlayButtonUI("playing");
+                } else if (audioPlayer.state === "paused") {
+                    updatePlayButtonUI("paused");
+                }
+                DOM.playSoundButton.disabled = DOM.playSoundButton.disabled || commonDisableCondition;
+
+                giveHintButton.disabled = hintUsed || !soundPlayedForCurrentChallenge || commonDisableCondition;
+                submitDrawingButton.disabled = !soundPlayedForCurrentChallenge || commonDisableCondition || isCanvasBlank(canvas);
+                shareDrawingButton.disabled = !lastDrawingId || commonDisableCondition;
+            } else { 
+                updatePlayButtonUI("play"); 
+                DOM.playSoundButton.disabled = DOM.playSoundButton.disabled || commonDisableCondition;
+                giveHintButton.disabled = true;
+                submitDrawingButton.disabled = true;
+                shareDrawingButton.disabled = true;
+            }
+            DOM.resetGameButton.disabled = commonDisableCondition;
+            
+            // Update drawing tool buttons
+            GameModules.DrawingTools.updateToolButtons();
+        }
+
+        // --- Reset Game Functionality ---
+        function resetGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            currentChallenge = null;
+            hintUsed = false;
+            soundPlayedForCurrentChallenge = false;
+            isAudioLoading = false;
+            isAIGenerationInProgress = false;
+            lastDrawingId = null;
+            
+            if (audioPlayer) {
+                if (audioPlayer.state === "started") audioPlayer.stop();
+                audioPlayer.dispose(); 
+                audioPlayer = null;
+            }
+            
+            currentSoundIndex = -1; 
+            GameModules.DrawingTools.undoStack = [];
+            GameModules.DrawingTools.redoStack = [];
+            GameModules.Scoring.resetScore();
+            
+            loadChallenge(0); 
+            showMessageBox('Game Reset! Ready for a new challenge.', 2000);
+            gameInfoDisplay.textContent = "Click 'Play Sound' to start!";
+        }
+
+        // --- Enhanced AI Functions ---
+        async function analyzeDrawingWithAI(base64ImageData, soundName, expectedElements) {
+            const apiKey = CONFIG.getApiKey();
+            
+            // If no API key, return basic analysis
+            if (!apiKey) {
+                return {
+                    accuracy: 0.7,
+                    creativity: 0.8,
+                    detail: 0.6,
+                    feedback: `Nice drawing of "${soundName}"! To get detailed AI analysis, please add your Gemini API key.`,
+                    elementsFound: [],
+                    suggestions: "Enable AI features for personalized suggestions!"
+                };
+            }
+
+            const prompt = `Analyze this drawing that represents the sound "${soundName}". 
+            
+Expected elements for this sound: ${expectedElements.join(', ')}
+
+Please provide a JSON response with the following structure:
+{
+    "accuracy": 0.8,  // 0-1 scale: How well does it represent the sound?
+    "creativity": 0.7,  // 0-1 scale: How creative/unique is the interpretation?
+    "detail": 0.6,  // 0-1 scale: Level of detail and effort
+    "feedback": "Your drawing shows great creativity...",
+    "elementsFound": ["element1", "element2"],  // Which expected elements were found
+    "suggestions": "To improve, you could add..."
+}
+
+Be encouraging but honest in your assessment.`;
+
+            const payload = {
+                contents: [{
+                    role: "user",
+                    parts: [
+                        { text: prompt },
+                        { inlineData: { mimeType: "image/png", data: base64ImageData } }
+                    ]
+                }],
+            };
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const aiText = result.candidates[0].content.parts[0].text;
+                
+                // Try to parse JSON from AI response
+                try {
+                    const jsonMatch = aiText.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        return JSON.parse(jsonMatch[0]);
+                    }
+                } catch (e) {
+                    console.warn('Could not parse AI JSON response, using fallback');
+                }
+                
+                // Fallback analysis
+                return {
+                    accuracy: 0.7,
+                    creativity: 0.8,
+                    detail: 0.6,
+                    feedback: aiText,
+                    elementsFound: [],
+                    suggestions: "Keep practicing your drawing skills!"
+                };
+                
+            } catch (error) {
+                console.error("Error analyzing drawing:", error);
+                // Return basic analysis on error
+                return {
+                    accuracy: 0.6,
+                    creativity: 0.7,
+                    detail: 0.5,
+                    feedback: `Drawing analysis failed. Your interpretation of "${soundName}" looks creative though!`,
+                    elementsFound: [],
+                    suggestions: "Check your API key or try again later."
+                };
+            }
+        }
+
+        async function getAIHint(soundName, expectedElements) {
+            isAIGenerationInProgress = true;
+            updateButtonStates();
+            const originalButtonText = giveHintButton.querySelector('span:last-child').textContent;
+            giveHintButton.querySelector('span:last-child').innerHTML = `Thinking... <span class="loading-spinner"></span>`;
+
+            try {
+                const apiKey = CONFIG.getApiKey();
+                
+                // If no API key, return basic hint
+                if (!apiKey) {
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay for UX
+                    return `Think about what "${soundName}" looks like or what creates this sound. Enable AI for smarter hints!`;
+                }
+
+                const prompt = `Generate a creative hint for someone trying to draw the sound "${soundName}". 
+                Expected elements include: ${expectedElements.join(', ')}
+                
+                Make the hint playful and helpful without being too obvious. One sentence only.`;
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: "user", parts: [{ text: prompt }] }]
+                    })
+                });
+
+                if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+                
+                const result = await response.json();
+                return result.candidates[0].content.parts[0].text;
+                
+            } catch (error) {
+                console.error("Error getting AI hint:", error);
+                return `Think about the visual elements that represent "${soundName}". Check your API key for better hints!`;
+            } finally {
+                isAIGenerationInProgress = false;
+                giveHintButton.querySelector('span:last-child').textContent = originalButtonText;
+                updateButtonStates();
+            }
+        }
+
+        // --- Sound Functions ---
+        async function playFreesoundAudio(audioUrl) {
+            await ensureToneStarted(); 
+            if (isAudioLoading) return;
+
+            // Check if we can reuse existing player
+            if (audioPlayer && audioPlayer.buffer && audioPlayer.buffer.url === audioUrl) {
+                if (audioPlayer.state === "started") { 
+                    audioPlayer.pause(); 
+                    updatePlayButtonUI("paused"); 
+                    return; 
+                }
+                else if (audioPlayer.state === "paused") { 
+                    audioPlayer.start(); 
+                    updatePlayButtonUI("playing"); 
+                    return; 
+                }
+            }
+            
+            if (audioPlayer) { 
+                if (audioPlayer.state === "started") audioPlayer.stop();
+                audioPlayer.dispose(); audioPlayer = null;
+            }
+
+            isAudioLoading = true;
+            updatePlayButtonUI("loading");
+            gameInfoDisplay.innerHTML = `Loading sound... <span class="loading-spinner"></span>`;
+            updateButtonStates();
+
+            try {
+                // Try to use cached version first
+                const cachedUrl = await GameModules.SoundLibrary.cacheSound(audioUrl);
+                audioPlayer = new Tone.Player(cachedUrl).toDestination();
+                
+                await new Promise((resolve, reject) => {
+                    if (audioPlayer.loaded) { resolve(); } 
+                    else {
+                        audioPlayer.buffer.onload = resolve;
+                        audioPlayer.buffer.onerror = reject;
+                    }
+                });
+                
+                isAudioLoading = false; 
+                audioPlayer.start(); 
+                soundPlayedForCurrentChallenge = true; 
+                gameInfoDisplay.textContent = `Draw what you heard!`; 
+                updatePlayButtonUI("playing");
+                updateButtonStates(); 
+
+                audioPlayer.onstop = () => { 
+                    if (currentChallenge && audioPlayer && !audioPlayer.disposed && audioPlayer.buffer.url === currentChallenge.freesoundUrl) {
+                         if (audioPlayer.state !== "started" && audioPlayer.state !== "paused") { 
+                            updatePlayButtonUI("replay");
+                         }
+                    }
+                };
+            } catch (error) { 
+                console.error("Error playing audio:", error);
+                isAudioLoading = false;
+                showMessageBox('Audio playback error. See console.');
+                gameInfoDisplay.textContent = currentChallenge ? `Error loading "${currentChallenge.name}".` : "Error loading sound.";
+                updatePlayButtonUI("play"); updateButtonStates(); 
+            }
+        }
+        
+        // --- Game Logic ---
+        function loadChallenge(index) {
+            if (index < 0 ) index = 0; 
+            
+            if (audioPlayer) {
+                if (audioPlayer.state === "started") audioPlayer.stop();
+                audioPlayer.dispose(); audioPlayer = null;
+            }
+
+            if (index >= totalSounds) {
+                gameInfoDisplay.textContent = "Category complete! 🎉 Choose another category or reset.";
+                currentChallenge = null;
+                currentSoundIndex = totalSounds; 
+                updateSoundCounter(); updateButtonStates(); 
+                document.getElementById('categorySelector').classList.add('show');
+                return;
+            }
+
+            currentSoundIndex = index;
+            currentChallenge = soundChallenges[currentSoundIndex];
+            hintUsed = false;
+            soundPlayedForCurrentChallenge = false;
+            isAudioLoading = false; 
+            isAIGenerationInProgress = false;
+            lastDrawingId = null;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            GameModules.DrawingTools.undoStack = [];
+            GameModules.DrawingTools.redoStack = [];
+            
+            gameInfoDisplay.textContent = `Listen to the sound!`; 
+            updateSoundCounter(); updateButtonStates(); 
+            document.getElementById('categorySelector').classList.remove('show');
+        }
+
+        // --- Fullscreen Confetti Effect ---
+        function triggerFullscreenConfetti() {
+            const confettiCount = 180; 
+            const colors = ['#FFD700', '#FFAB00', '#FF6F00', '#FFFFFF', '#FF3D00', '#DD2C00', '#f08080', '#add8e6', '#87CEEB', '#FFB6C1'];
+            
+            const submitButtonRect = submitDrawingButton.getBoundingClientRect();
+            const originX = submitButtonRect.left + submitButtonRect.width / 2;
+            const originY = submitButtonRect.top + submitButtonRect.height / 2;
+
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('fullscreen-confetti-particle');
+                const isRibbon = Math.random() > 0.4;
+                let pWidth, pHeight;
+
+                if (isRibbon) {
+                    confetti.classList.add('ribbon');
+                    pWidth = Math.random() * 16 + 6; pHeight = Math.random() * 7 + 4;
+                } else {
+                    pWidth = Math.random() * 12 + 6; pHeight = pWidth;
+                }
+                
+                confetti.style.width = `${pWidth}px`;
+                confetti.style.height = `${pHeight}px`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                confetti.style.position = 'fixed'; 
+                confetti.style.top = `${originY - pHeight / 2}px`; 
+                confetti.style.left = `${originX - pWidth / 2}px`;
+                document.body.appendChild(confetti);
+
+                const angle = (Math.random() * Math.PI * 0.8) - (Math.PI * 0.9); 
+                const initialSpeed = Math.random() * 15 + 10; 
+                let vx = Math.cos(angle) * initialSpeed;
+                let vy = Math.sin(angle) * initialSpeed; 
+                const gravity = 0.5; 
+                const drag = 0.98; 
+                let rotation = Math.random() * 360;
+                const rotationSpeed = (Math.random() - 0.5) * 20;
+                let currentX = 0; 
+                let currentY = 0; 
+                let opacity = 1;
+                const lifeSpan = Math.random() * 2000 + 1500; 
+                const startTime = performance.now();
+
+                function animateParticle() {
+                    const elapsedTime = performance.now() - startTime;
+                    if (elapsedTime > lifeSpan) {
+                        confetti.remove();
+                        return;
+                    }
+
+                    vy += gravity; 
+                    vx *= drag;    
+                    vy *= drag;
+
+                    currentX += vx;
+                    currentY += vy;
+                    rotation += rotationSpeed;
+                    opacity = 1 - (elapsedTime / lifeSpan);
+
+                    confetti.style.transform = `translate(${currentX}px, ${currentY}px) rotate(${rotation}deg)`;
+                    confetti.style.opacity = opacity;
+                    
+                    requestAnimationFrame(animateParticle);
+                }
+                requestAnimationFrame(animateParticle);
+            }
+        }
+
+        // --- Event Listeners ---
+        DOM.resetGameButton.addEventListener('click', resetGame);
+        
+        DOM.previousSoundButton.addEventListener('click', async () => {
+            await ensureToneStarted(); 
+            if (currentSoundIndex > 0 && !isAIGenerationInProgress && !isAudioLoading) {
+                loadChallenge(currentSoundIndex - 1);
+            }
+        });
+
+        DOM.nextSoundButton.addEventListener('click', async () => {
+            await ensureToneStarted();
+            if (currentSoundIndex < totalSounds && !isAIGenerationInProgress && !isAudioLoading) { 
+                loadChallenge(currentSoundIndex + 1);
+            }
+        });
+
+        DOM.playSoundButton.addEventListener('click', async () => {
+            await ensureToneStarted(); 
+            if (isAIGenerationInProgress || isAudioLoading) return;
+            
+            if (!currentChallenge) { 
+                if (currentSoundIndex === -1 || currentSoundIndex >= totalSounds) {
+                    loadChallenge(0); 
+                    if (currentChallenge) playFreesoundAudio(currentChallenge.freesoundUrl); 
+                }
+                return;
+            }
+            if (currentChallenge) playFreesoundAudio(currentChallenge.freesoundUrl); 
+        });
+
+        DOM.giveHintButton.addEventListener('click', async () => {
+            if (!currentChallenge || hintUsed || !soundPlayedForCurrentChallenge || isAIGenerationInProgress || isAudioLoading) {
+                 if (!currentChallenge) showMessageBox("Play a sound first to get a hint!", 2000);
+                 else if (!soundPlayedForCurrentChallenge) showMessageBox("Listen to the sound before getting a hint!", 2000);
+                 else if (hintUsed) showMessageBox("Hint already used for this sound!", 2000);
+                 return;
+            }
+            
+            const aiHint = await getAIHint(currentChallenge.name, currentChallenge.expectedElements);
+            gameInfoDisplay.innerHTML = `✨ AI Hint: ${aiHint} ${currentChallenge.emoji || ''}`;
+            hintUsed = true;
+            updateButtonStates();
+        });
+
+        DOM.shareDrawingButton.addEventListener('click', () => {
+            if (lastDrawingId) {
+                GameModules.Storage.shareDrawing(lastDrawingId);
+            } else {
+                showMessageBox("No drawing to share! Submit a drawing first.", 2000);
+            }
+        });
+
+        DOM.submitDrawingButton.addEventListener('click', async () => {
+            if (!currentChallenge) { showMessageBox("Click 'Play Sound' to start!", 2500); return; }
+            if (isCanvasBlank(canvas)) { showMessageBox('Please draw something!', 2500); return; }
+            if (!soundPlayedForCurrentChallenge) { showMessageBox('Listen to the sound first!', 2500); return; }
+            if (isAIGenerationInProgress || isAudioLoading) return;
+
+            const base64ImageData = canvas.toDataURL('image/png').split(',')[1];
+            
+            isAIGenerationInProgress = true;
+            updateButtonStates();
+            gameInfoDisplay.innerHTML = `✨ AI is analyzing your art... <span class="loading-spinner"></span>`;
+
+            // Get AI analysis
+            const analysis = await analyzeDrawingWithAI(base64ImageData, currentChallenge.name, currentChallenge.expectedElements);
+            
+            // Calculate score
+            const scoreResult = GameModules.Scoring.calculateScore(analysis, hintUsed);
+            GameModules.Scoring.addScore(scoreResult.total);
+            
+            // Save drawing
+            lastDrawingId = GameModules.Storage.saveDrawing(currentChallenge.name, canvas.toDataURL('image/png'), scoreResult.total);
+            
+            // Display results
+            let resultMessage = `<div class="mb-2">${analysis.feedback}</div>`;
+            resultMessage += `<div class="mb-2"><strong>Score: ${scoreResult.total}/100</strong></div>`;
+            
+            if (analysis.elementsFound.length > 0) {
+                resultMessage += `<div class="mb-1">Found elements: ${analysis.elementsFound.join(', ')}</div>`;
+            }
+            
+            if (scoreResult.total > 80) {
+                resultMessage += `<div class="text-green-400">Excellent work! 🌟</div>`;
+                triggerFullscreenConfetti();
+            } else if (scoreResult.total > 60) {
+                resultMessage += `<div class="text-yellow-400">Good job! 👍</div>`;
+            } else {
+                resultMessage += `<div class="text-blue-400">Keep practicing! 💪</div>`;
+            }
+            
+            if (analysis.suggestions) {
+                resultMessage += `<div class="mt-2 text-sm opacity-80">${analysis.suggestions}</div>`;
+            }
+            
+            gameInfoDisplay.innerHTML = resultMessage;
+            
+            isAIGenerationInProgress = false;
+            updateButtonStates();
+        });
+
+        // --- Doodling Zone ---
+        function getEventCoordinates(event) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+
+            if (event.touches && event.touches.length > 0) {
+                clientX = event.touches[0].clientX; 
+                clientY = event.touches[0].clientY;
+            } else {
+                clientX = event.clientX; 
+                clientY = event.clientY;
+            }
+            const x = (clientX - rect.left) * (canvas.width / rect.width);
+            const y = (clientY - rect.top) * (canvas.height / rect.height);
+            return { x, y };
+        }
+
+        function startDrawing(e) {
+            if (isAIGenerationInProgress || isAudioLoading) return;
+            
+            // Save state for undo
+            GameModules.DrawingTools.saveState();
+            
+            drawing = true;
+            const { x, y } = getEventCoordinates(e);
+            ctx.beginPath(); 
+            ctx.moveTo(x, y);
+        }
+
+        function stopDrawing() { 
+            if (drawing) {
+                drawing = false;
+                updateButtonStates(); 
+            }
+        }
+
+        function draw(e) {
+            if (!drawing || isAIGenerationInProgress || isAudioLoading) return;
+            const { x, y } = getEventCoordinates(e);
+            ctx.lineTo(x, y); 
+            ctx.stroke();
+        }
+
+        // Mouse & Touch Listeners
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseleave', stopDrawing);
+
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); });
+        canvas.addEventListener('touchend', (e) => { e.preventDefault(); stopDrawing(); });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+        canvas.addEventListener('touchcancel', (e) => { e.preventDefault(); stopDrawing(); });
+
+        // --- Initialization ---
+        window.addEventListener('load', () => {
+            resizeCanvas(); 
+            
+            // Initialize all modules
+            GameModules.DrawingTools.init();
+            GameModules.SoundLibrary.init();
+            GameModules.Scoring.init();
+            ApiKeyManager.init();
+            
+            // Add click handler for API status
+            document.getElementById('apiStatus').addEventListener('click', () => {
+                ApiKeyManager.toggleModal();
+            });
+            
+            // Update responsive drawing tools
+            updateResponsiveDrawingTools();
+            
+            resetGame(); 
+            showMessageBox('Enhanced Draw the Sound Game! 🎨✨ Use fullscreen canvas for better drawing experience!', 4000);
+        });
+        
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                resizeCanvas();
+                updateResponsiveDrawingTools();
+            }, 150);
+        });
+    </script>
+</body>
+</html>
