@@ -5,10 +5,14 @@ An interactive web game where you listen to sounds and draw what you hear on a *
 ## Screenshots
 
 ### Desktop Experience
-![Desktop View](screenshots/desktop-view.png)
+<img src="screenshots/desktop-view.png" alt="Desktop View" width="600">
+
+*Fullscreen canvas with collapsible tools and controls for immersive drawing*
 
 ### Mobile Experience  
-![Mobile View](screenshots/mobile-view.png)
+<img src="screenshots/mobile-view.png" alt="Mobile View" width="300">
+
+*Touch-optimized interface with responsive design*
 
 ## Key Features
 
