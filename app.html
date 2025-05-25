@@ -1427,7 +1427,6 @@
             brushSizeOptions: null, // Will be cached on first use
             toolButtons: null // Will be cached on first use
         };
-
         // Cache canvas context
         const ctx = DOM.canvas.getContext('2d');
 
@@ -1663,200 +1662,7 @@
             }
         };
 
-        // --- DOM Element References ---
-        const playSoundButton = document.getElementById('playSoundButton');
-        const giveHintButton = document.getElementById('giveHintButton');
-        const resetGameButton = document.getElementById('resetGameButton'); 
-        const shareDrawingButton = document.getElementById('shareDrawingButton');
-        const previousSoundButton = document.getElementById('previousSoundButton');
-        const nextSoundButton = document.getElementById('nextSoundButton');
-        const canvas = document.getElementById('doodlingZone');
-        const ctx = canvas.getContext('2d');
-        const messageBox = document.getElementById('messageBox');
-        const gameInfoDisplay = document.getElementById('gameInfoDisplay');
-        const soundCounterDisplay = document.getElementById('soundCounterDisplay');
-        const submitDrawingButton = document.getElementById('submitDrawingButton');
-        const gameContainer = document.getElementById('game-container');
-        const toolsToggle = document.getElementById('toolsToggle');
-        const drawingToolsPanel = document.getElementById('drawingToolsPanel');
-        const controlsToggle = document.getElementById('controlsToggle');
-        const controlsContainer = document.getElementById('controlsContainer');
-
-        let drawing = false; 
-        let messageBoxTimeout;
-        let currentChallenge = null; 
-        let hintUsed = false;
-        let audioPlayer = null; 
-        let currentSoundIndex = -1; 
-        let soundPlayedForCurrentChallenge = false; 
-        let toneJsStarted = false;
-        let isAudioLoading = false; 
-        let isAIGenerationInProgress = false;
-        let lastDrawingId = null;
-        let toolsPanelVisible = true;
-        let controlsPanelVisible = true;
-
-        // --- Sound Challenge Data (will be populated by SoundLibrary) ---
-        const soundChallenges = [];
-        let totalSounds = 0;
-
-        // --- Drawing Tools Toggle ---
-        function toggleDrawingTools() {
-            toolsPanelVisible = !toolsPanelVisible;
-            if (toolsPanelVisible) {
-                drawingToolsPanel.classList.remove('collapsed');
-                toolsToggle.querySelector('span:last-child').textContent = 'Hide';
-            } else {
-                drawingToolsPanel.classList.add('collapsed');
-                toolsToggle.querySelector('span:last-child').textContent = 'Tools';
-            }
-        }
-
-        // --- Controls Toggle ---
-        function toggleControls() {
-            controlsPanelVisible = !controlsPanelVisible;
-            if (controlsPanelVisible) {
-                controlsContainer.classList.remove('collapsed');
-                controlsToggle.querySelector('span:last-child').textContent = 'Hide';
-            } else {
-                controlsContainer.classList.add('collapsed');
-                controlsToggle.querySelector('span:last-child').textContent = 'Controls';
-            }
-        }
-
-        // Event listeners for toggle functions
-        DOM.toolsToggle.addEventListener('click', toggleDrawingTools);
-        DOM.controlsToggle.addEventListener('click', toggleControls);
-
-        // Update the responsive adjustments for drawing tools
-        const updateResponsiveDrawingTools = () => {
-            const colorPalette = document.getElementById('colorPalette');
-            const colorOptions = colorPalette.querySelectorAll('.color-option');
-            const brushSizeOptions = document.querySelectorAll('.brush-size-option');
-            const toolButtons = document.querySelectorAll('.tool-button');
-
-            if (window.innerWidth >= 1200) {
-                // Large screens
-                colorPalette.style.gridTemplateColumns = 'repeat(4, 1fr)';
-                colorPalette.style.gap = '8px';
-                colorOptions.forEach(option => {
-                    option.style.width = '32px';
-                    option.style.height = '32px';
-                });
-                brushSizeOptions.forEach(option => {
-                    option.style.width = '36px';
-                    option.style.height = '36px';
-                });
-            } else if (window.innerWidth >= 768) {
-                // Medium screens
-                colorPalette.style.gridTemplateColumns = 'repeat(3, 1fr)';
-                colorPalette.style.gap = '6px';
-                colorOptions.forEach(option => {
-                    option.style.width = '28px';
-                    option.style.height = '28px';
-                });
-                brushSizeOptions.forEach(option => {
-                    option.style.width = '32px';
-                    option.style.height = '32px';
-                });
-                toolButtons.forEach(button => {
-                    button.style.padding = '8px';
-                    button.style.fontSize = '0.8rem';
-                });
-            } else {
-                // Small screens - reset to default
-                colorPalette.style.gridTemplateColumns = 'repeat(4, 1fr)';
-                colorPalette.style.gap = '4px';
-                colorOptions.forEach(option => {
-                    option.style.width = '24px';
-                    option.style.height = '24px';
-                });
-                brushSizeOptions.forEach(option => {
-                    option.style.width = '28px';
-                    option.style.height = '28px';
-                });
-                toolButtons.forEach(button => {
-                    button.style.padding = '6px';
-                    button.style.fontSize = '0.7rem';
-                });
-            }
-        };
-
-        // --- Doodling Zone ---
-        function resizeCanvas() {
-            const containerWidth = window.innerWidth;
-            const containerHeight = window.innerHeight;
-
-            let oldDrawing = null;
-            if (canvas.width > 0 && canvas.height > 0) {
-                try { oldDrawing = ctx.getImageData(0, 0, canvas.width, canvas.height); }
-                catch (e) { console.warn("Could not get image data (tainted or zero-size).", e); }
-            }
-            
-            canvas.width = containerWidth;
-            canvas.height = containerHeight;
-            
-            ctx.strokeStyle = GameModules.DrawingTools.currentColor;
-            ctx.lineWidth = GameModules.DrawingTools.currentBrushSize;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            if (oldDrawing) {
-                try { ctx.putImageData(oldDrawing, 0, 0); }
-                catch (e) { console.warn("Could not restore image data.", e); }
-            }
-        }
-
-        // --- Utility Functions ---
-        async function ensureToneStarted() {
-            if (!toneJsStarted) {
-                try {
-                    await Tone.start();
-                    toneJsStarted = true;
-                    console.log("Tone.js context started successfully by user interaction.");
-                } catch (e) {
-                    console.error("Error starting Tone.js context:", e);
-                    showMessageBox("Could not initialize audio. Please refresh or try a different browser.");
-                    playSoundButton.disabled = true; 
-                    giveHintButton.disabled = true;
-                }
-            }
-        }
-
-        function showMessageBox(message, duration = 3000) {
-            clearTimeout(messageBoxTimeout);
-            messageBox.innerHTML = message;
-            messageBox.style.display = 'block'; 
-            void messageBox.offsetWidth; 
-            messageBox.classList.add('show');
-            if (duration > 0) {
-                messageBoxTimeout = setTimeout(() => {
-                    messageBox.classList.remove('show');
-                    setTimeout(() => { if (!messageBox.classList.contains('show')) messageBox.style.display = 'none'; }, 350);
-                }, duration);
-            }
-        }
-
-        function isCanvasBlank(canvasToCheck) {
-            const tempCompCanvas = document.createElement('canvas');
-            if (!canvasToCheck || canvasToCheck.width === 0 || canvasToCheck.height === 0) return true;
-            tempCompCanvas.width = canvasToCheck.width;
-            tempCompCanvas.height = canvasToCheck.height;
-            return canvasToCheck.toDataURL() === tempCompCanvas.toDataURL();
-        }
-        
-        function updateSoundCounter() {
-            totalSounds = soundChallenges.length;
-            if (currentSoundIndex >= 0 && currentSoundIndex < totalSounds) {
-                soundCounterDisplay.textContent = `Sound ${currentSoundIndex + 1} / ${totalSounds}`;
-            } else if (currentSoundIndex >= totalSounds) {
-                soundCounterDisplay.textContent = `Category Complete!`;
-            } else {
-                soundCounterDisplay.textContent = `Sound - / ${totalSounds}`;
-            }
-        }
-        
-        function updatePlayButtonUI(state) { 
+        function updatePlayButtonUI(state) {
             const iconEl = DOM.playSoundButton.querySelector('.material-symbols-outlined');
             const textEl = DOM.playSoundButton.querySelector('span:last-child');
 
@@ -1891,31 +1697,31 @@
         }
 
         function updateButtonStates() {
-            const commonDisableCondition = isAIGenerationInProgress || isAudioLoading;
-            previousSoundButton.disabled = currentSoundIndex <= 0 || commonDisableCondition;
-            nextSoundButton.disabled = (currentSoundIndex >= totalSounds - 1 || currentSoundIndex === -1) || commonDisableCondition;
+            const commonDisableCondition = gameState.isAIGenerationInProgress || gameState.isAudioLoading;
+            DOM.previousSoundButton.disabled = gameState.currentSoundIndex <= 0 || commonDisableCondition;
+            DOM.nextSoundButton.disabled = (gameState.currentSoundIndex >= totalSounds - 1 || gameState.currentSoundIndex === -1) || commonDisableCondition;
             
-            if (currentChallenge) {
-                if (isAudioLoading) {
+            if (gameState.currentChallenge) {
+                if (gameState.isAudioLoading) {
                     updatePlayButtonUI("loading");
-                } else if (!audioPlayer || audioPlayer.state === "stopped") {
-                     updatePlayButtonUI(soundPlayedForCurrentChallenge ? "replay" : "play");
-                } else if (audioPlayer.state === "started") {
+                } else if (!gameState.audioPlayer || gameState.audioPlayer.state === "stopped") {
+                     updatePlayButtonUI(gameState.soundPlayedForCurrentChallenge ? "replay" : "play");
+                } else if (gameState.audioPlayer.state === "started") {
                     updatePlayButtonUI("playing");
-                } else if (audioPlayer.state === "paused") {
+                } else if (gameState.audioPlayer.state === "paused") {
                     updatePlayButtonUI("paused");
                 }
                 DOM.playSoundButton.disabled = DOM.playSoundButton.disabled || commonDisableCondition;
 
-                giveHintButton.disabled = hintUsed || !soundPlayedForCurrentChallenge || commonDisableCondition;
-                submitDrawingButton.disabled = !soundPlayedForCurrentChallenge || commonDisableCondition || isCanvasBlank(canvas);
-                shareDrawingButton.disabled = !lastDrawingId || commonDisableCondition;
+                DOM.giveHintButton.disabled = gameState.hintUsed || !gameState.soundPlayedForCurrentChallenge || commonDisableCondition;
+                DOM.submitDrawingButton.disabled = !gameState.soundPlayedForCurrentChallenge || commonDisableCondition || isCanvasBlank(DOM.canvas);
+                DOM.shareDrawingButton.disabled = !gameState.lastDrawingId || commonDisableCondition;
             } else { 
                 updatePlayButtonUI("play"); 
                 DOM.playSoundButton.disabled = DOM.playSoundButton.disabled || commonDisableCondition;
-                giveHintButton.disabled = true;
-                submitDrawingButton.disabled = true;
-                shareDrawingButton.disabled = true;
+                DOM.giveHintButton.disabled = true;
+                DOM.submitDrawingButton.disabled = true;
+                DOM.shareDrawingButton.disabled = true;
             }
             DOM.resetGameButton.disabled = commonDisableCondition;
             
@@ -1925,28 +1731,28 @@
 
         // --- Reset Game Functionality ---
         function resetGame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            currentChallenge = null;
-            hintUsed = false;
-            soundPlayedForCurrentChallenge = false;
-            isAudioLoading = false;
-            isAIGenerationInProgress = false;
-            lastDrawingId = null;
+            ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
+            gameState.currentChallenge = null;
+            gameState.hintUsed = false;
+            gameState.soundPlayedForCurrentChallenge = false;
+            gameState.isAudioLoading = false;
+            gameState.isAIGenerationInProgress = false;
+            gameState.lastDrawingId = null;
             
-            if (audioPlayer) {
-                if (audioPlayer.state === "started") audioPlayer.stop();
-                audioPlayer.dispose(); 
-                audioPlayer = null;
+            if (gameState.audioPlayer) {
+                if (gameState.audioPlayer.state === "started") gameState.audioPlayer.stop();
+                gameState.audioPlayer.dispose(); 
+                gameState.audioPlayer = null;
             }
             
-            currentSoundIndex = -1; 
+            gameState.currentSoundIndex = -1; 
             GameModules.DrawingTools.undoStack = [];
             GameModules.DrawingTools.redoStack = [];
             GameModules.Scoring.resetScore();
             
             loadChallenge(0); 
             showMessageBox('Game Reset! Ready for a new challenge.', 2000);
-            gameInfoDisplay.textContent = "Click 'Play Sound' to start!";
+            DOM.gameInfoDisplay.textContent = "Click 'Play Sound' to start!";
         }
 
         // --- Enhanced AI Functions ---
@@ -2040,10 +1846,10 @@ Be encouraging but honest in your assessment.`;
         }
 
         async function getAIHint(soundName, expectedElements) {
-            isAIGenerationInProgress = true;
+            gameState.isAIGenerationInProgress = true;
             updateButtonStates();
-            const originalButtonText = giveHintButton.querySelector('span:last-child').textContent;
-            giveHintButton.querySelector('span:last-child').innerHTML = `Thinking... <span class="loading-spinner"></span>`;
+            const originalButtonText = DOM.giveHintButton.querySelector('span:last-child').textContent;
+            DOM.giveHintButton.querySelector('span:last-child').innerHTML = `Thinking... <span class="loading-spinner"></span>`;
 
             try {
                 const apiKey = CONFIG.getApiKey();
@@ -2076,8 +1882,8 @@ Be encouraging but honest in your assessment.`;
                 console.error("Error getting AI hint:", error);
                 return `Think about the visual elements that represent "${soundName}". Check your API key for better hints!`;
             } finally {
-                isAIGenerationInProgress = false;
-                giveHintButton.querySelector('span:last-child').textContent = originalButtonText;
+                gameState.isAIGenerationInProgress = false;
+                DOM.giveHintButton.querySelector('span:last-child').textContent = originalButtonText;
                 updateButtonStates();
             }
         }
@@ -2085,64 +1891,64 @@ Be encouraging but honest in your assessment.`;
         // --- Sound Functions ---
         async function playFreesoundAudio(audioUrl) {
             await ensureToneStarted(); 
-            if (isAudioLoading) return;
+            if (gameState.isAudioLoading) return;
 
             // Check if we can reuse existing player
-            if (audioPlayer && audioPlayer.buffer && audioPlayer.buffer.url === audioUrl) {
-                if (audioPlayer.state === "started") { 
-                    audioPlayer.pause(); 
+            if (gameState.audioPlayer && gameState.audioPlayer.buffer && gameState.audioPlayer.buffer.url === audioUrl) {
+                if (gameState.audioPlayer.state === "started") { 
+                    gameState.audioPlayer.pause(); 
                     updatePlayButtonUI("paused"); 
                     return; 
                 }
-                else if (audioPlayer.state === "paused") { 
-                    audioPlayer.start(); 
+                else if (gameState.audioPlayer.state === "paused") { 
+                    gameState.audioPlayer.start(); 
                     updatePlayButtonUI("playing"); 
                     return; 
                 }
             }
             
-            if (audioPlayer) { 
-                if (audioPlayer.state === "started") audioPlayer.stop();
-                audioPlayer.dispose(); audioPlayer = null;
+            if (gameState.audioPlayer) { 
+                if (gameState.audioPlayer.state === "started") gameState.audioPlayer.stop();
+                gameState.audioPlayer.dispose(); gameState.audioPlayer = null;
             }
 
-            isAudioLoading = true;
+            gameState.isAudioLoading = true;
             updatePlayButtonUI("loading");
-            gameInfoDisplay.innerHTML = `Loading sound... <span class="loading-spinner"></span>`;
+            DOM.gameInfoDisplay.innerHTML = `Loading sound... <span class="loading-spinner"></span>`;
             updateButtonStates();
 
             try {
                 // Try to use cached version first
                 const cachedUrl = await GameModules.SoundLibrary.cacheSound(audioUrl);
-                audioPlayer = new Tone.Player(cachedUrl).toDestination();
+                gameState.audioPlayer = new Tone.Player(cachedUrl).toDestination();
                 
                 await new Promise((resolve, reject) => {
-                    if (audioPlayer.loaded) { resolve(); } 
+                    if (gameState.audioPlayer.loaded) { resolve(); } 
                     else {
-                        audioPlayer.buffer.onload = resolve;
-                        audioPlayer.buffer.onerror = reject;
+                        gameState.audioPlayer.buffer.onload = resolve;
+                        gameState.audioPlayer.buffer.onerror = reject;
                     }
                 });
                 
-                isAudioLoading = false; 
-                audioPlayer.start(); 
-                soundPlayedForCurrentChallenge = true; 
-                gameInfoDisplay.textContent = `Draw what you heard!`; 
+                gameState.isAudioLoading = false; 
+                gameState.audioPlayer.start(); 
+                gameState.soundPlayedForCurrentChallenge = true; 
+                DOM.gameInfoDisplay.textContent = `Draw what you heard!`; 
                 updatePlayButtonUI("playing");
                 updateButtonStates(); 
 
-                audioPlayer.onstop = () => { 
-                    if (currentChallenge && audioPlayer && !audioPlayer.disposed && audioPlayer.buffer.url === currentChallenge.freesoundUrl) {
-                         if (audioPlayer.state !== "started" && audioPlayer.state !== "paused") { 
+                gameState.audioPlayer.onstop = () => { 
+                    if (gameState.currentChallenge && gameState.audioPlayer && !gameState.audioPlayer.disposed && gameState.audioPlayer.buffer.url === gameState.currentChallenge.freesoundUrl) {
+                         if (gameState.audioPlayer.state !== "started" && gameState.audioPlayer.state !== "paused") { 
                             updatePlayButtonUI("replay");
                          }
                     }
                 };
             } catch (error) { 
                 console.error("Error playing audio:", error);
-                isAudioLoading = false;
+                gameState.isAudioLoading = false;
                 showMessageBox('Audio playback error. See console.');
-                gameInfoDisplay.textContent = currentChallenge ? `Error loading "${currentChallenge.name}".` : "Error loading sound.";
+                DOM.gameInfoDisplay.textContent = gameState.currentChallenge ? `Error loading "${gameState.currentChallenge.name}".` : "Error loading sound.";
                 updatePlayButtonUI("play"); updateButtonStates(); 
             }
         }
@@ -2151,33 +1957,33 @@ Be encouraging but honest in your assessment.`;
         function loadChallenge(index) {
             if (index < 0 ) index = 0; 
             
-            if (audioPlayer) {
-                if (audioPlayer.state === "started") audioPlayer.stop();
-                audioPlayer.dispose(); audioPlayer = null;
+            if (gameState.audioPlayer) {
+                if (gameState.audioPlayer.state === "started") gameState.audioPlayer.stop();
+                gameState.audioPlayer.dispose(); gameState.audioPlayer = null;
             }
 
             if (index >= totalSounds) {
-                gameInfoDisplay.textContent = "Category complete! 🎉 Choose another category or reset.";
-                currentChallenge = null;
-                currentSoundIndex = totalSounds; 
+                DOM.gameInfoDisplay.textContent = "Category complete! 🎉 Choose another category or reset.";
+                gameState.currentChallenge = null;
+                gameState.currentSoundIndex = totalSounds; 
                 updateSoundCounter(); updateButtonStates(); 
                 document.getElementById('categorySelector').classList.add('show');
                 return;
             }
 
-            currentSoundIndex = index;
-            currentChallenge = soundChallenges[currentSoundIndex];
-            hintUsed = false;
-            soundPlayedForCurrentChallenge = false;
-            isAudioLoading = false; 
-            isAIGenerationInProgress = false;
-            lastDrawingId = null;
+            gameState.currentSoundIndex = index;
+            gameState.currentChallenge = soundChallenges[gameState.currentSoundIndex];
+            gameState.hintUsed = false;
+            gameState.soundPlayedForCurrentChallenge = false;
+            gameState.isAudioLoading = false; 
+            gameState.isAIGenerationInProgress = false;
+            gameState.lastDrawingId = null;
             
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
             GameModules.DrawingTools.undoStack = [];
             GameModules.DrawingTools.redoStack = [];
             
-            gameInfoDisplay.textContent = `Listen to the sound!`; 
+            DOM.gameInfoDisplay.textContent = `Listen to the sound!`; 
             updateSoundCounter(); updateButtonStates(); 
             document.getElementById('categorySelector').classList.remove('show');
         }
@@ -2187,7 +1993,7 @@ Be encouraging but honest in your assessment.`;
             const confettiCount = 180; 
             const colors = ['#FFD700', '#FFAB00', '#FF6F00', '#FFFFFF', '#FF3D00', '#DD2C00', '#f08080', '#add8e6', '#87CEEB', '#FFB6C1'];
             
-            const submitButtonRect = submitDrawingButton.getBoundingClientRect();
+            const submitButtonRect = DOM.submitDrawingButton.getBoundingClientRect();
             const originX = submitButtonRect.left + submitButtonRect.width / 2;
             const originY = submitButtonRect.top + submitButtonRect.height / 2;
 
@@ -2257,75 +2063,75 @@ Be encouraging but honest in your assessment.`;
         
         DOM.previousSoundButton.addEventListener('click', async () => {
             await ensureToneStarted(); 
-            if (currentSoundIndex > 0 && !isAIGenerationInProgress && !isAudioLoading) {
-                loadChallenge(currentSoundIndex - 1);
+            if (gameState.currentSoundIndex > 0 && !gameState.isAIGenerationInProgress && !gameState.isAudioLoading) {
+                loadChallenge(gameState.currentSoundIndex - 1);
             }
         });
 
         DOM.nextSoundButton.addEventListener('click', async () => {
             await ensureToneStarted();
-            if (currentSoundIndex < totalSounds && !isAIGenerationInProgress && !isAudioLoading) { 
-                loadChallenge(currentSoundIndex + 1);
+            if (gameState.currentSoundIndex < totalSounds && !gameState.isAIGenerationInProgress && !gameState.isAudioLoading) { 
+                loadChallenge(gameState.currentSoundIndex + 1);
             }
         });
 
         DOM.playSoundButton.addEventListener('click', async () => {
             await ensureToneStarted(); 
-            if (isAIGenerationInProgress || isAudioLoading) return;
+            if (gameState.isAIGenerationInProgress || gameState.isAudioLoading) return;
             
-            if (!currentChallenge) { 
-                if (currentSoundIndex === -1 || currentSoundIndex >= totalSounds) {
+            if (!gameState.currentChallenge) { 
+                if (gameState.currentSoundIndex === -1 || gameState.currentSoundIndex >= totalSounds) {
                     loadChallenge(0); 
-                    if (currentChallenge) playFreesoundAudio(currentChallenge.freesoundUrl); 
+                    if (gameState.currentChallenge) playFreesoundAudio(gameState.currentChallenge.freesoundUrl); 
                 }
                 return;
             }
-            if (currentChallenge) playFreesoundAudio(currentChallenge.freesoundUrl); 
+            if (gameState.currentChallenge) playFreesoundAudio(gameState.currentChallenge.freesoundUrl); 
         });
 
         DOM.giveHintButton.addEventListener('click', async () => {
-            if (!currentChallenge || hintUsed || !soundPlayedForCurrentChallenge || isAIGenerationInProgress || isAudioLoading) {
-                 if (!currentChallenge) showMessageBox("Play a sound first to get a hint!", 2000);
-                 else if (!soundPlayedForCurrentChallenge) showMessageBox("Listen to the sound before getting a hint!", 2000);
-                 else if (hintUsed) showMessageBox("Hint already used for this sound!", 2000);
+            if (!gameState.currentChallenge || gameState.hintUsed || !gameState.soundPlayedForCurrentChallenge || gameState.isAIGenerationInProgress || gameState.isAudioLoading) {
+                 if (!gameState.currentChallenge) showMessageBox("Play a sound first to get a hint!", 2000);
+                 else if (!gameState.soundPlayedForCurrentChallenge) showMessageBox("Listen to the sound before getting a hint!", 2000);
+                 else if (gameState.hintUsed) showMessageBox("Hint already used for this sound!", 2000);
                  return;
             }
             
-            const aiHint = await getAIHint(currentChallenge.name, currentChallenge.expectedElements);
-            gameInfoDisplay.innerHTML = `✨ AI Hint: ${aiHint} ${currentChallenge.emoji || ''}`;
-            hintUsed = true;
+            const aiHint = await getAIHint(gameState.currentChallenge.name, gameState.currentChallenge.expectedElements);
+            DOM.gameInfoDisplay.innerHTML = `✨ AI Hint: ${aiHint} ${gameState.currentChallenge.emoji || ''}`;
+            gameState.hintUsed = true;
             updateButtonStates();
         });
 
         DOM.shareDrawingButton.addEventListener('click', () => {
-            if (lastDrawingId) {
-                GameModules.Storage.shareDrawing(lastDrawingId);
+            if (gameState.lastDrawingId) {
+                GameModules.Storage.shareDrawing(gameState.lastDrawingId);
             } else {
                 showMessageBox("No drawing to share! Submit a drawing first.", 2000);
             }
         });
 
         DOM.submitDrawingButton.addEventListener('click', async () => {
-            if (!currentChallenge) { showMessageBox("Click 'Play Sound' to start!", 2500); return; }
-            if (isCanvasBlank(canvas)) { showMessageBox('Please draw something!', 2500); return; }
-            if (!soundPlayedForCurrentChallenge) { showMessageBox('Listen to the sound first!', 2500); return; }
-            if (isAIGenerationInProgress || isAudioLoading) return;
+            if (!gameState.currentChallenge) { showMessageBox("Click 'Play Sound' to start!", 2500); return; }
+            if (isCanvasBlank(DOM.canvas)) { showMessageBox('Please draw something!', 2500); return; }
+            if (!gameState.soundPlayedForCurrentChallenge) { showMessageBox('Listen to the sound first!', 2500); return; }
+            if (gameState.isAIGenerationInProgress || gameState.isAudioLoading) return;
 
-            const base64ImageData = canvas.toDataURL('image/png').split(',')[1];
+            const base64ImageData = DOM.canvas.toDataURL('image/png').split(',')[1];
             
-            isAIGenerationInProgress = true;
+            gameState.isAIGenerationInProgress = true;
             updateButtonStates();
-            gameInfoDisplay.innerHTML = `✨ AI is analyzing your art... <span class="loading-spinner"></span>`;
+            DOM.gameInfoDisplay.innerHTML = `✨ AI is analyzing your art... <span class="loading-spinner"></span>`;
 
             // Get AI analysis
-            const analysis = await analyzeDrawingWithAI(base64ImageData, currentChallenge.name, currentChallenge.expectedElements);
+            const analysis = await analyzeDrawingWithAI(base64ImageData, gameState.currentChallenge.name, gameState.currentChallenge.expectedElements);
             
             // Calculate score
-            const scoreResult = GameModules.Scoring.calculateScore(analysis, hintUsed);
+            const scoreResult = GameModules.Scoring.calculateScore(analysis, gameState.hintUsed);
             GameModules.Scoring.addScore(scoreResult.total);
             
             // Save drawing
-            lastDrawingId = GameModules.Storage.saveDrawing(currentChallenge.name, canvas.toDataURL('image/png'), scoreResult.total);
+            gameState.lastDrawingId = GameModules.Storage.saveDrawing(gameState.currentChallenge.name, DOM.canvas.toDataURL('image/png'), scoreResult.total);
             
             // Display results
             let resultMessage = `<div class="mb-2">${analysis.feedback}</div>`;
@@ -2348,15 +2154,15 @@ Be encouraging but honest in your assessment.`;
                 resultMessage += `<div class="mt-2 text-sm opacity-80">${analysis.suggestions}</div>`;
             }
             
-            gameInfoDisplay.innerHTML = resultMessage;
+            DOM.gameInfoDisplay.innerHTML = resultMessage;
             
-            isAIGenerationInProgress = false;
+            gameState.isAIGenerationInProgress = false;
             updateButtonStates();
         });
 
         // --- Doodling Zone ---
         function getEventCoordinates(event) {
-            const rect = canvas.getBoundingClientRect();
+            const rect = DOM.canvas.getBoundingClientRect();
             let clientX, clientY;
 
             if (event.touches && event.touches.length > 0) {
@@ -2372,7 +2178,7 @@ Be encouraging but honest in your assessment.`;
         }
 
         function startDrawing(e) {
-            if (isAIGenerationInProgress || isAudioLoading) return;
+            if (gameState.isAIGenerationInProgress || gameState.isAudioLoading) return;
             
             // Save state for undo
             GameModules.DrawingTools.saveState();
@@ -2391,7 +2197,7 @@ Be encouraging but honest in your assessment.`;
         }
 
         function draw(e) {
-            if (!drawing || isAIGenerationInProgress || isAudioLoading) return;
+            if (!drawing || gameState.isAIGenerationInProgress || gameState.isAudioLoading) return;
             const { x, y } = getEventCoordinates(e);
             ctx.lineTo(x, y); 
             ctx.stroke();
@@ -2438,6 +2244,10 @@ Be encouraging but honest in your assessment.`;
                 updateResponsiveDrawingTools();
             }, 150);
         });
+
+        // Event listeners for toggle functions
+        DOM.toolsToggle.addEventListener('click', toggleDrawingTools);
+        DOM.controlsToggle.addEventListener('click', toggleControls);
     </script>
 </body>
 </html>
