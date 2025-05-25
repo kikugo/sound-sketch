@@ -2448,6 +2448,18 @@ Be encouraging but honest in your assessment.`;
             ApiKeyManager.init();
             EventManager.init();
             
+            // Ensure drawing tools panel is visible on load
+            if (gameState.toolsPanelVisible) {
+                DOM.drawingToolsPanel.classList.remove('collapsed');
+                DOM.toolsToggle.querySelector('span:last-child').textContent = 'Hide';
+            }
+            
+            // Ensure controls panel is visible on load
+            if (gameState.controlsPanelVisible) {
+                DOM.controlsContainer.classList.remove('collapsed');
+                DOM.controlsToggle.querySelector('span:last-child').textContent = 'Hide';
+            }
+            
             // Add click handler for API status
             document.getElementById('apiStatus').addEventListener('click', () => {
                 ApiKeyManager.toggleModal();
