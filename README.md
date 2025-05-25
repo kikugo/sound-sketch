@@ -2,6 +2,16 @@
 
 An interactive web game where you listen to sounds and draw what you hear on a **fullscreen canvas**, powered by AI for intelligent feedback. Discover and draw from a diverse collection of sounds!
 
+## Screenshots
+
+### Desktop Experience
+![Desktop View](screenshots/desktop-view.png)
+*Fullscreen canvas with collapsible tools and controls for immersive drawing*
+
+### Mobile Experience  
+![Mobile View](screenshots/mobile-view.png)
+*Touch-optimized interface with responsive design*
+
 ## Key Features
 
 ### **Fullscreen Drawing Experience**
