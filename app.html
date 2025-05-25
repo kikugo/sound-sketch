@@ -8,37 +8,46 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0" />
     <style>
+        /* Import Inter font */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
         :root {
-            --bg-dark: #0f172a;
-            --bg-panel: rgba(15, 23, 42, 0.95);
-            --border-light: rgba(255,255,255,0.15);
-            --text-light: #e5e7eb;
-            --text-muted: #9ca3af;
-            --shadow-dark: 0 4px 20px rgba(0,0,0,0.4);
-            --transition-fast: 0.15s ease;
-            --transition-smooth: 0.3s ease;
+            /* Color Palette */
+            --color-white: #FFFFFF;
+            --color-black: #000000;
+            --color-red: #EF4444;
+            --color-blue: #3B82F6;
+            --color-green: #10B981;
+            --color-yellow: #F59E0B;
+            --color-purple: #8B5CF6;
+            --color-pink: #EC4899;
+            --color-orange: #F97316;
+            --color-cyan: #06B6D4;
+            
+            /* Brush Sizes */
+            --brush-small: 2px;
+            --brush-medium: 4px;
+            --brush-large: 6px;
+            --brush-xlarge: 8px;
         }
-
-        * { box-sizing: border-box; }
 
         body {
             font-family: 'Inter', sans-serif;
             overflow: hidden;
             margin: 0;
-            background: var(--bg-dark);
+            background-color: #0f172a; /* Dark background */
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
         }
 
+        /* Fullscreen game container */
         #game-container {
             position: relative;
             width: 100vw;
             height: 100vh;
-            background: var(--bg-dark);
+            background-color: #0f172a;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -47,7 +56,7 @@
         #doodlingZone {
             width: 100%;
             height: 100%;
-            background: var(--bg-dark);
+            background-color: #0f172a; /* Dark drawing background */
             cursor: crosshair;
             touch-action: none;
             position: absolute;
@@ -56,25 +65,23 @@
             z-index: 1;
         }
 
-        .panel {
+        /* Drawing Tools Panel - Responsive with toggle */
+        .drawing-tools-panel {
             position: absolute;
-            background: var(--bg-panel);
+            left: 8px;
+            top: 60px;
+            background-color: rgba(15, 23, 42, 0.95);
             -webkit-backdrop-filter: blur(12px) saturate(160%);
             backdrop-filter: blur(12px) saturate(160%);
             border-radius: 12px;
-            border: 1px solid var(--border-light);
-            box-shadow: var(--shadow-dark);
-            transition: transform var(--transition-smooth), opacity var(--transition-smooth);
-        }
-
-        .drawing-tools-panel {
-            left: 8px;
-            top: 60px;
             padding: 8px;
+            border: 1px solid rgba(255,255,255,0.15);
             z-index: 12;
             display: flex;
             flex-direction: column;
             gap: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: transform 0.3s ease, opacity 0.3s ease;
         }
 
         .drawing-tools-panel.collapsed {
@@ -83,72 +90,157 @@
             pointer-events: none;
         }
 
-        .toggle-btn {
+        /* Toggle button for drawing tools */
+        .tools-toggle {
             position: absolute;
-            background: var(--bg-panel);
+            left: 8px;
+            top: 20px;
+            background-color: rgba(15, 23, 42, 0.95);
             -webkit-backdrop-filter: blur(12px) saturate(160%);
             backdrop-filter: blur(12px) saturate(160%);
             border-radius: 8px;
             padding: 8px;
-            border: 1px solid var(--border-light);
+            border: 1px solid rgba(255,255,255,0.15);
             z-index: 13;
-            color: var(--text-light);
+            color: #e5e7eb;
             cursor: pointer;
             font-size: 0.8rem;
             display: flex;
             align-items: center;
             gap: 4px;
-            box-shadow: var(--shadow-dark);
-            transition: background-color 0.2s ease, transform var(--transition-fast);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: background-color 0.2s ease, transform 0.15s ease;
         }
 
-        .toggle-btn:hover {
-            background: var(--bg-dark);
+        .tools-toggle:hover {
+            background-color: rgba(15, 23, 42, 1);
             transform: scale(1.05);
         }
 
-        .tools-toggle {
-            left: 8px;
-            top: 20px;
+        .tools-toggle .material-symbols-outlined {
+            font-size: 16px;
         }
 
-        .controls-toggle {
-            bottom: 20px;
-            right: 20px;
+        @media (min-width: 768px) {
+            .drawing-tools-panel {
+                left: 16px;
+                top: 120px;
+                padding: 12px;
+                border-radius: 16px;
+                gap: 12px;
+            }
+            
+            .tools-toggle {
+                left: 16px;
+                top: 80px;
+                padding: 10px;
+                border-radius: 10px;
+                font-size: 0.9rem;
+                gap: 6px;
+            }
+            
+            .tools-toggle .material-symbols-outlined {
+                font-size: 18px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .drawing-tools-panel {
+                left: 24px;
+                top: 140px;
+                padding: 16px;
+                gap: 16px;
+            }
+            
+            .tools-toggle {
+                left: 24px;
+                top: 100px;
+                padding: 12px;
+                border-radius: 12px;
+                font-size: 1rem;
+            }
+            
+            .tools-toggle .material-symbols-outlined {
+                font-size: 20px;
+            }
         }
 
         .top-bar {
             position: absolute;
-            top: 10px;
+            top: 10px; 
             left: 0;
             right: 0;
-            padding: 0 12px;
+            padding: 0 12px; 
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 15;
-            margin-top: 28px;
-            height: 40px;
+            margin-top: 28px; 
+            height: 40px; 
         }
 
-        .nav-button {
-            background: rgba(255, 255, 255, 0.08);
-            color: #cbd5e1;
-            border: 1px solid var(--border-light);
-            border-radius: 50%;
-            width: 34px;
+        /* Responsive top bar */
+        @media (min-width: 768px) {
+            .top-bar {
+                top: 16px;
+                padding: 0 20px;
+                margin-top: 0; /* No notch on desktop */
+                height: 50px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .top-bar {
+                top: 20px;
+                padding: 0 32px;
+                height: 60px;
+            }
+        }
+
+        .top-bar .nav-button {
+            background-color: rgba(255, 255, 255, 0.08); 
+            color: #cbd5e1; 
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%; 
+            width: 34px; 
             height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: background-color 0.2s ease, transform var(--transition-fast);
-            padding: 0;
+            transition: background-color 0.2s ease, transform 0.15s ease;
+            padding: 0; 
         }
 
-        .nav-button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.15); }
-        .nav-button:active:not(:disabled) { transform: scale(0.92); }
-        .nav-button:disabled { opacity: 0.3; cursor: not-allowed; }
+        @media (min-width: 768px) {
+            .top-bar .nav-button {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .top-bar .nav-button {
+                width: 44px;
+                height: 44px;
+            }
+        }
+
+        .top-bar .nav-button .material-symbols-outlined { 
+            font-size: 20px; 
+        }
+
+        @media (min-width: 768px) {
+            .top-bar .nav-button .material-symbols-outlined {
+                font-size: 24px;
+            }
+        }
+
+        .top-bar .nav-button:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.15); }
+        .top-bar .nav-button:active:not(:disabled) { transform: scale(0.92); }
+         .top-bar .nav-button:disabled {
+            opacity: 0.3; cursor: not-allowed; background-color: rgba(255,255,255,0.03) !important; color: #4b5563 !important; 
+        }
 
         .title-counter-group {
             text-align: center;
@@ -160,17 +252,41 @@
         }
 
         #appTitle {
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: var(--text-light);
+            font-size: 1.05rem; 
+            font-weight: 600; 
+            color: #e5e7eb; 
             margin: 0;
             line-height: 1.2;
         }
 
+        @media (min-width: 768px) {
+            #appTitle {
+                font-size: 1.25rem;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            #appTitle {
+                font-size: 1.5rem;
+            }
+        }
+
         #soundCounterDisplay {
-            font-size: 0.65rem;
-            color: var(--text-muted);
+            font-size: 0.65rem; 
+            color: #9ca3af; 
             line-height: 1;
+        }
+
+        @media (min-width: 768px) {
+            #soundCounterDisplay {
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            #soundCounterDisplay {
+                font-size: 0.85rem;
+            }
         }
 
         .controls-container {
@@ -181,18 +297,18 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
-            padding: 10px;
-            background: rgba(15, 23, 42, 0.9);
+            gap: 8px; 
+            padding: 10px; 
+            background-color: rgba(15, 23, 42, 0.9); 
             -webkit-backdrop-filter: blur(12px) saturate(160%);
             backdrop-filter: blur(12px) saturate(160%);
             border-radius: 16px;
             box-shadow: 0 6px 25px rgba(0,0,0,0.5);
-            border: 1px solid var(--border-light);
+            border: 1px solid rgba(255,255,255,0.15);
             z-index: 10;
-            width: calc(100% - 24px);
+            width: calc(100% - 24px); 
             max-width: 340px;
-            transition: transform var(--transition-smooth), opacity var(--transition-smooth);
+            transition: transform 0.3s ease, opacity 0.3s ease;
         }
 
         .controls-container.collapsed {
@@ -201,49 +317,130 @@
             pointer-events: none;
         }
 
+        /* Responsive controls */
+        @media (min-width: 768px) {
+            .controls-container {
+                bottom: 20px;
+                padding: 16px;
+                gap: 12px;
+                border-radius: 20px;
+                max-width: 500px;
+                width: calc(100% - 40px);
+                background-color: rgba(15, 23, 42, 0.9);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .controls-container {
+                bottom: 24px;
+                padding: 20px;
+                gap: 16px;
+                border-radius: 24px;
+                max-width: 600px;
+                width: calc(100% - 60px);
+            }
+        }
+        
         #gameInfoDisplay {
             color: #f3f4f6;
-            font-size: 0.9rem;
+            font-size: 0.9rem; 
             font-weight: 500;
-            min-height: 36px;
+            min-height: 36px; 
             text-align: center;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 0 5px;
             margin-bottom: 4px;
-            line-height: 1.4;
+            line-height: 1.4; /* Adjusted for potentially longer AI messages */
         }
 
-        .action-buttons-row {
+        @media (min-width: 768px) {
+            #gameInfoDisplay {
+                font-size: 1rem;
+                min-height: 40px;
+                padding: 0 10px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            #gameInfoDisplay {
+                font-size: 1.1rem;
+                min-height: 44px;
+                padding: 0 15px;
+            }
+        }
+
+        .action-buttons-row { 
             display: flex;
-            gap: 8px;
+            gap: 8px; 
             width: 100%;
         }
 
-        .action-button {
+        @media (min-width: 768px) {
+            .action-buttons-row {
+                gap: 12px;
+            }
+        }
+
+        .action-button { 
             flex-grow: 1;
-            padding: 7px;
-            border-radius: 8px;
-            font-size: 0.75rem;
+            padding: 7px; 
+            border-radius: 8px; 
+            font-size: 0.75rem; 
             font-weight: 500;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; 
             align-items: center;
             justify-content: center;
-            gap: 1px;
-            transition: background-color 0.2s ease, transform var(--transition-fast), box-shadow 0.2s ease;
+            gap: 1px; 
+            transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
             border: 1px solid transparent;
             cursor: pointer;
-            min-height: 46px;
+            min-height: 46px; 
+        }
+
+        @media (min-width: 768px) {
+            .action-button {
+                padding: 10px;
+                border-radius: 10px;
+                font-size: 0.85rem;
+                min-height: 52px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .action-button {
+                padding: 12px;
+                border-radius: 12px;
+                font-size: 0.9rem;
+                min-height: 56px;
+            }
         }
 
         .action-button:disabled {
-            opacity: 0.4;
+            opacity: 0.4; 
             cursor: not-allowed;
-            background: rgba(255,255,255,0.03) !important;
-            color: #6b7280 !important;
+            background-color: rgba(255,255,255,0.03) !important;
+            color: #6b7280 !important; 
             box-shadow: none !important;
+        }
+
+        .action-button .material-symbols-outlined { 
+            font-size: 18px; 
+            margin-bottom: 1px; 
+        }
+
+        @media (min-width: 768px) {
+            .action-button .material-symbols-outlined {
+                font-size: 20px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .action-button .material-symbols-outlined {
+                font-size: 22px;
+            }
         }
 
         .tool-section {
@@ -254,9 +451,15 @@
 
         .tool-section-title {
             font-size: 0.7rem;
-            color: var(--text-muted);
+            color: #9ca3af;
             text-align: center;
             margin-bottom: 2px;
+        }
+
+        @media (min-width: 768px) {
+            .tool-section-title {
+                font-size: 0.8rem;
+            }
         }
 
         .color-palette {
@@ -271,11 +474,17 @@
             border-radius: 50%;
             cursor: pointer;
             border: 2px solid transparent;
-            transition: transform var(--transition-fast), border-color var(--transition-fast);
+            transition: transform 0.15s ease, border-color 0.15s ease;
         }
 
-        .color-option:hover { transform: scale(1.1); }
-        .color-option.active { border-color: #ffffff; transform: scale(1.15); }
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.active {
+            border-color: #ffffff;
+            transform: scale(1.15);
+        }
 
         .brush-sizes {
             display: flex;
@@ -286,28 +495,28 @@
         .brush-size-option {
             width: 28px;
             height: 28px;
-            background: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color var(--transition-fast), transform var(--transition-fast);
+            transition: background-color 0.15s ease, transform 0.15s ease;
         }
 
         .brush-size-option:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.2);
             transform: scale(1.05);
         }
 
         .brush-size-option.active {
-            background: rgba(139, 92, 246, 0.4);
+            background-color: rgba(139, 92, 246, 0.4);
             border-color: rgba(139, 92, 246, 0.6);
         }
 
         .brush-preview {
-            background: currentColor;
+            background-color: currentColor;
             border-radius: 50%;
         }
 
@@ -319,7 +528,7 @@
         .tool-button {
             flex: 1;
             padding: 6px;
-            background: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 6px;
             color: #cbd5e1;
@@ -329,31 +538,59 @@
             align-items: center;
             justify-content: center;
             gap: 2px;
-            transition: background-color var(--transition-fast), transform var(--transition-fast);
+            transition: background-color 0.15s ease, transform 0.15s ease;
         }
 
         .tool-button:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.2);
             transform: scale(1.02);
         }
 
-        .tool-button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .tool-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
 
+        .tool-button .material-symbols-outlined {
+            font-size: 14px;
+        }
+
+        /* Score Display - Responsive */
         .score-display {
             position: absolute;
             right: 8px;
             top: 60px;
-            background: rgba(15, 23, 42, 0.9);
+            background-color: rgba(15, 23, 42, 0.9);
             -webkit-backdrop-filter: blur(12px) saturate(160%);
             backdrop-filter: blur(12px) saturate(160%);
             border-radius: 12px;
             padding: 8px 12px;
-            border: 1px solid var(--border-light);
+            border: 1px solid rgba(255,255,255,0.15);
             z-index: 12;
-            color: var(--text-light);
+            color: #e5e7eb;
             font-size: 0.8rem;
             text-align: center;
-            box-shadow: var(--shadow-dark);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        @media (min-width: 768px) {
+            .score-display {
+                right: 16px;
+                top: 120px;
+                padding: 12px 16px;
+                border-radius: 16px;
+                font-size: 0.9rem;
+                background-color: rgba(15, 23, 42, 0.9);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .score-display {
+                right: 24px;
+                top: 140px;
+                padding: 16px 20px;
+                font-size: 1rem;
+            }
         }
 
         .score-item {
@@ -362,45 +599,46 @@
             margin-bottom: 4px;
         }
 
-        .score-item:last-child { margin-bottom: 0; }
+        .score-item:last-child {
+            margin-bottom: 0;
+        }
 
-        /* Button specific styles */
         #playSoundButton {
-            background: rgba(76, 175, 80, 0.25);
+            background-color: rgba(76, 175, 80, 0.25); 
             color: #a5d6a7;
             border-color: rgba(76, 175, 80, 0.4);
         }
-        #playSoundButton:hover:not(:disabled) { background: rgba(76, 175, 80, 0.35); }
+        #playSoundButton:hover:not(:disabled) { background-color: rgba(76, 175, 80, 0.35); }
 
-        #giveHintButton {
-            background: rgba(251, 191, 36, 0.25);
+        #giveHintButton { /* AI Hint Button */
+            background-color: rgba(251, 191, 36, 0.25); 
             color: #fcd34d;
             border-color: rgba(251, 191, 36, 0.4);
         }
-        #giveHintButton:hover:not(:disabled) { background: rgba(251, 191, 36, 0.35); }
+        #giveHintButton:hover:not(:disabled) { background-color: rgba(251, 191, 36, 0.35); }
 
         #shareDrawingButton {
-            background: rgba(34, 197, 94, 0.25);
+            background-color: rgba(34, 197, 94, 0.25);
             color: #86efac;
             border-color: rgba(34, 197, 94, 0.4);
         }
-        #shareDrawingButton:hover:not(:disabled) { background: rgba(34, 197, 94, 0.35); }
+        #shareDrawingButton:hover:not(:disabled) { background-color: rgba(34, 197, 94, 0.35); }
 
-        #resetGameButton {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
+        #resetGameButton { 
+            background-color: rgba(239, 68, 68, 0.2); 
+            color: #fca5a5; 
             border-color: rgba(239, 68, 68, 0.3);
         }
-        #resetGameButton:hover:not(:disabled) { background: rgba(239, 68, 68, 0.3); }
+        #resetGameButton:hover:not(:disabled) { background-color: rgba(239, 68, 68, 0.3); }
 
-        #submitDrawingButton {
-            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+        #submitDrawingButton { /* AI Feedback & Submit Button */
+            background-image: linear-gradient(135deg, #8b5cf6, #6366f1);
             color: white;
             font-weight: 500;
-            padding: 10px 15px;
-            font-size: 0.85rem;
+            padding: 10px 15px; /* Adjusted padding for longer text */
+            font-size: 0.85rem; /* Adjusted font size for longer text */
             border-radius: 10px;
-            transition: transform var(--transition-fast), box-shadow 0.2s ease, background-image var(--transition-smooth);
+            transition: transform 0.15s ease, box-shadow 0.2s ease, background-image 0.3s ease;
             border: none;
             box-shadow: 0 3px 12px rgba(139, 92, 246, 0.25);
             width: 100%;
@@ -408,26 +646,58 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            margin-top: 6px;
+            margin-top: 6px; 
+        }
+
+        @media (min-width: 768px) {
+            #submitDrawingButton {
+                padding: 12px 18px;
+                font-size: 0.95rem;
+                border-radius: 12px;
+                margin-top: 8px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            #submitDrawingButton {
+                padding: 14px 20px;
+                font-size: 1rem;
+                border-radius: 14px;
+                margin-top: 10px;
+            }
         }
 
         #submitDrawingButton:hover:not(:disabled) {
-            background: linear-gradient(135deg, #a78bfa, #818cf8);
+            background-image: linear-gradient(135deg, #a78bfa, #818cf8);
             box-shadow: 0 5px 18px rgba(139, 92, 246, 0.35);
         }
-
         #submitDrawingButton:active:not(:disabled) {
             transform: scale(0.97);
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
         }
+        #submitDrawingButton .material-symbols-outlined { 
+            font-size: 18px; 
+        }
+
+        @media (min-width: 768px) {
+            #submitDrawingButton .material-symbols-outlined {
+                font-size: 20px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            #submitDrawingButton .material-symbols-outlined {
+                font-size: 22px;
+            }
+        }
 
         .message-box {
             position: absolute;
-            top: 75px;
+            top: 75px; 
             left: 50%;
             width: calc(100% - 40px);
             max-width: 300px;
-            background: rgba(15, 23, 42, 0.95);
+            background-color: rgba(15, 23, 42, 0.95); 
             color: white;
             padding: 10px 15px;
             -webkit-backdrop-filter: blur(8px) saturate(140%);
@@ -435,35 +705,75 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
             z-index: 1000;
-            display: none;
+            display: none; 
             opacity: 0;
             border-radius: 8px;
             font-size: 0.875rem;
             text-align: center;
+            box-sizing: border-box;
             transition: opacity 0.35s ease-out, transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-            transform: translate(-50%, -20px);
+            transform: translate(-50%, -20px); 
+        }
+
+        @media (min-width: 768px) {
+            .message-box {
+                top: 130px;
+                max-width: 400px;
+                padding: 12px 18px;
+                border-radius: 10px;
+                font-size: 0.9rem;
+                background-color: rgba(15, 23, 42, 0.95);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .message-box {
+                top: 150px;
+                max-width: 500px;
+                padding: 14px 20px;
+                border-radius: 12px;
+                font-size: 1rem;
+            }
         }
 
         .message-box.show {
-            display: block;
+            display: block; 
             opacity: 1;
-            transform: translate(-50%, 0);
+            transform: translate(-50%, 0); 
         }
 
+        /* Category selector - Responsive */
         .category-selector {
             position: absolute;
             top: 120px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.9);
+            background-color: rgba(15, 23, 42, 0.9);
             -webkit-backdrop-filter: blur(12px) saturate(160%);
             backdrop-filter: blur(12px) saturate(160%);
             border-radius: 12px;
             padding: 8px;
-            border: 1px solid var(--border-light);
+            border: 1px solid rgba(255,255,255,0.15);
             z-index: 11;
             display: none;
-            box-shadow: var(--shadow-dark);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        @media (min-width: 768px) {
+            .category-selector {
+                top: 180px;
+                padding: 10px;
+                border-radius: 14px;
+                background-color: rgba(15, 23, 42, 0.9);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .category-selector {
+                top: 200px;
+                padding: 12px;
+                border-radius: 16px;
+            }
         }
 
         .category-selector.show {
@@ -471,46 +781,90 @@
             gap: 6px;
         }
 
+        @media (min-width: 768px) {
+            .category-selector.show {
+                gap: 8px;
+            }
+        }
+
         .category-button {
             padding: 6px 12px;
-            background: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 8px;
             color: #cbd5e1;
             cursor: pointer;
             font-size: 0.75rem;
-            transition: background-color var(--transition-fast), transform var(--transition-fast);
+            transition: background-color 0.15s ease, transform 0.15s ease;
+        }
+
+        @media (min-width: 768px) {
+            .category-button {
+                padding: 8px 16px;
+            border-radius: 10px;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .category-button {
+                padding: 10px 20px;
+                border-radius: 12px;
+                font-size: 0.9rem;
+            }
         }
 
         .category-button:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.2);
             transform: scale(1.02);
         }
 
         .category-button.active {
-            background: rgba(139, 92, 246, 0.4);
+            background-color: rgba(139, 92, 246, 0.4);
             border-color: rgba(139, 92, 246, 0.6);
         }
 
+        /* API Status - Responsive - Fixed positioning to avoid overlap */
         .api-status {
             position: absolute;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(31, 41, 55, 0.85);
+            background-color: rgba(31, 41, 55, 0.85);
             -webkit-backdrop-filter: blur(12px) saturate(160%);
             backdrop-filter: blur(12px) saturate(160%);
             border-radius: 8px;
             padding: 6px 10px;
             border: 1px solid rgba(255,255,255,0.12);
             z-index: 12;
-            color: var(--text-light);
+            color: #e5e7eb;
             font-size: 0.7rem;
             display: flex;
             align-items: center;
             gap: 4px;
-            box-shadow: var(--shadow-dark);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             cursor: pointer;
+        }
+
+        @media (min-width: 768px) {
+            .api-status {
+                top: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 8px 12px;
+                border-radius: 10px;
+                font-size: 0.8rem;
+            gap: 6px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .api-status {
+                top: 90px;
+                padding: 10px 14px;
+                border-radius: 12px;
+                font-size: 0.85rem;
+            }
         }
 
         .api-status.enabled {
@@ -527,9 +881,16 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: currentColor;
+            background-color: currentColor;
         }
 
+        @media (min-width: 768px) {
+            .api-status-dot {
+                width: 8px;
+                height: 8px;
+            }
+        }
+        
         .fullscreen-confetti-particle {
             position: fixed;
             pointer-events: none;
@@ -537,8 +898,27 @@
             opacity: 1;
             border-radius: 50%;
         }
-
         .fullscreen-confetti-particle.ribbon { border-radius: 3px; }
+
+        #attribution {
+            position: fixed;
+            bottom: 5px;
+            left: 10px;
+            font-size: 0.7rem;
+            color: #475569; /* Darker, more subtle text */
+            z-index: 5;
+            opacity: 0.7;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        #attribution a {
+            color: #64748b; /* Darker link color */
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        #attribution a:hover {
+            color: #94a3b8;
+            text-decoration: underline;
+        }
 
         .loading-spinner {
             display: inline-block;
@@ -556,13 +936,14 @@
             to { transform: rotate(360deg); }
         }
 
+        /* API Key Modal - Responsive */
         .api-key-modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.8);
             -webkit-backdrop-filter: blur(8px);
             backdrop-filter: blur(8px);
             z-index: 1000;
@@ -571,7 +952,7 @@
             justify-content: center;
             opacity: 0;
             visibility: hidden;
-            transition: opacity var(--transition-smooth), visibility var(--transition-smooth);
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
         .api-key-modal.show {
@@ -580,17 +961,25 @@
         }
 
         .api-key-content {
-            background: rgba(31, 41, 55, 0.95);
+            background-color: rgba(31, 41, 55, 0.95);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             backdrop-filter: blur(20px) saturate(180%);
             border-radius: 16px;
             padding: 24px;
-            border: 1px solid var(--border-light);
+            border: 1px solid rgba(255,255,255,0.15);
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             max-width: 400px;
             width: 90%;
-            color: var(--text-light);
+            color: #e5e7eb;
             text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .api-key-content {
+                max-width: 500px;
+                padding: 32px;
+                border-radius: 20px;
+            }
         }
 
         .api-key-title {
@@ -600,23 +989,46 @@
             color: #f3f4f6;
         }
 
+        @media (min-width: 768px) {
+            .api-key-title {
+                font-size: 1.5rem;
+                margin-bottom: 16px;
+            }
+        }
+
         .api-key-description {
             font-size: 0.9rem;
-            color: var(--text-muted);
+            color: #9ca3af;
             margin-bottom: 20px;
             line-height: 1.5;
+        }
+
+        @media (min-width: 768px) {
+            .api-key-description {
+                font-size: 1rem;
+                margin-bottom: 24px;
+            }
         }
 
         .api-key-input {
             width: 100%;
             padding: 12px;
-            background: rgba(17, 24, 39, 0.8);
+            background-color: rgba(17, 24, 39, 0.8);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 8px;
-            color: var(--text-light);
+            color: #e5e7eb;
             font-size: 0.9rem;
             margin-bottom: 16px;
             transition: border-color 0.2s ease;
+        }
+
+        @media (min-width: 768px) {
+            .api-key-input {
+                padding: 14px;
+                border-radius: 10px;
+                font-size: 1rem;
+                margin-bottom: 20px;
+            }
         }
 
         .api-key-input:focus {
@@ -625,12 +1037,20 @@
             box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
         }
 
-        .api-key-input::placeholder { color: #6b7280; }
+        .api-key-input::placeholder {
+            color: #6b7280;
+        }
 
         .api-key-buttons {
             display: flex;
             gap: 12px;
             justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .api-key-buttons {
+                gap: 16px;
+            }
         }
 
         .api-key-button {
@@ -643,24 +1063,32 @@
             border: none;
         }
 
+        @media (min-width: 768px) {
+            .api-key-button {
+                padding: 12px 24px;
+                border-radius: 10px;
+                font-size: 1rem;
+            }
+        }
+
         .api-key-button.primary {
-            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            background-image: linear-gradient(135deg, #8b5cf6, #6366f1);
             color: white;
         }
 
         .api-key-button.primary:hover {
-            background: linear-gradient(135deg, #a78bfa, #818cf8);
+            background-image: linear-gradient(135deg, #a78bfa, #818cf8);
             transform: translateY(-1px);
         }
 
         .api-key-button.secondary {
-            background: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.1);
             color: #cbd5e1;
             border: 1px solid rgba(255,255,255,0.2);
         }
 
         .api-key-button.secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.2);
         }
 
         .api-key-link {
@@ -674,51 +1102,141 @@
             text-decoration: underline;
         }
 
-        /* Responsive Design - Optimized Media Queries */
+        /* Controls toggle button */
+        .controls-toggle {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(15, 23, 42, 0.95);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            backdrop-filter: blur(12px) saturate(160%);
+            border-radius: 8px;
+            padding: 8px;
+            border: 1px solid rgba(255,255,255,0.15);
+            z-index: 13;
+            color: #e5e7eb;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: background-color 0.2s ease, transform 0.15s ease;
+        }
+
+        .controls-toggle:hover {
+            background-color: rgba(15, 23, 42, 1);
+            transform: scale(1.05);
+        }
+
+        .controls-toggle .material-symbols-outlined {
+            font-size: 16px;
+        }
+
         @media (min-width: 768px) {
-            .drawing-tools-panel { left: 16px; top: 120px; padding: 12px; gap: 12px; }
-            .toggle-btn { padding: 10px; font-size: 0.9rem; gap: 6px; }
-            .tools-toggle { left: 16px; top: 80px; }
-            .controls-toggle { bottom: 30px; right: 30px; }
-            .top-bar { top: 16px; padding: 0 20px; margin-top: 0; height: 50px; }
-            .nav-button { width: 40px; height: 40px; }
-            #appTitle { font-size: 1.25rem; }
-            #soundCounterDisplay { font-size: 0.75rem; }
-            .controls-container { bottom: 20px; padding: 16px; gap: 12px; max-width: 500px; }
-            #gameInfoDisplay { font-size: 1rem; min-height: 40px; }
-            .action-button { padding: 10px; font-size: 0.85rem; min-height: 52px; }
-            #submitDrawingButton { padding: 12px 18px; font-size: 0.95rem; margin-top: 8px; }
-            .score-display { right: 16px; top: 120px; padding: 12px 16px; font-size: 0.9rem; }
-            .message-box { top: 130px; max-width: 400px; padding: 12px 18px; font-size: 0.9rem; }
-            .category-selector { top: 180px; padding: 10px; gap: 8px; }
-            .category-button { padding: 8px 16px; font-size: 0.85rem; }
-            .api-status { top: 80px; padding: 8px 12px; font-size: 0.8rem; gap: 6px; }
-            .api-status-dot { width: 8px; height: 8px; }
-            .api-key-content { max-width: 500px; padding: 32px; }
-            .api-key-title { font-size: 1.5rem; margin-bottom: 16px; }
-            .api-key-description { font-size: 1rem; margin-bottom: 24px; }
-            .api-key-input { padding: 14px; font-size: 1rem; margin-bottom: 20px; }
-            .api-key-buttons { gap: 16px; }
-            .api-key-button { padding: 12px 24px; font-size: 1rem; }
+            .controls-toggle {
+                bottom: 30px;
+                right: 30px;
+                padding: 10px;
+                border-radius: 10px;
+                font-size: 0.9rem;
+                gap: 6px;
+            }
+            
+            .controls-toggle .material-symbols-outlined {
+                font-size: 18px;
+            }
         }
 
         @media (min-width: 1200px) {
-            .drawing-tools-panel { left: 24px; top: 140px; padding: 16px; gap: 16px; }
-            .tools-toggle { left: 24px; top: 100px; padding: 12px; font-size: 1rem; }
-            .controls-toggle { bottom: 40px; right: 40px; padding: 12px; font-size: 1rem; }
-            .top-bar { top: 20px; padding: 0 32px; height: 60px; }
-            .nav-button { width: 44px; height: 44px; }
-            #appTitle { font-size: 1.5rem; }
-            #soundCounterDisplay { font-size: 0.85rem; }
-            .controls-container { bottom: 24px; padding: 20px; gap: 16px; max-width: 600px; }
-            #gameInfoDisplay { font-size: 1.1rem; min-height: 44px; }
-            .action-button { padding: 12px; font-size: 0.9rem; min-height: 56px; }
-            #submitDrawingButton { padding: 14px 20px; font-size: 1rem; margin-top: 10px; }
-            .score-display { right: 24px; top: 140px; padding: 16px 20px; font-size: 1rem; }
-            .message-box { top: 150px; max-width: 500px; padding: 14px 20px; font-size: 1rem; }
-            .category-selector { top: 200px; padding: 12px; }
-            .category-button { padding: 10px 20px; font-size: 0.9rem; }
-            .api-status { top: 90px; padding: 10px 14px; font-size: 0.85rem; }
+            .controls-toggle {
+                bottom: 40px;
+                right: 40px;
+                padding: 12px;
+                border-radius: 12px;
+                font-size: 1rem;
+            }
+            
+            .controls-toggle .material-symbols-outlined {
+                font-size: 20px;
+            }
+        }
+
+        .controls-container {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px; 
+            padding: 10px; 
+            background-color: rgba(15, 23, 42, 0.9); 
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            backdrop-filter: blur(12px) saturate(160%);
+            border-radius: 16px;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.15);
+            z-index: 10;
+            width: calc(100% - 24px); 
+            max-width: 340px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .controls-container.collapsed {
+            transform: translateX(-50%) translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Responsive controls */
+        @media (min-width: 768px) {
+            .controls-container {
+                bottom: 20px;
+                padding: 16px;
+                gap: 12px;
+                border-radius: 20px;
+                max-width: 500px;
+                width: calc(100% - 40px);
+                background-color: rgba(15, 23, 42, 0.9);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .controls-container {
+                bottom: 24px;
+                padding: 20px;
+                gap: 16px;
+                border-radius: 24px;
+                max-width: 600px;
+                width: calc(100% - 60px);
+            }
+        }
+
+        .fullscreen-confetti-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10001;
+            opacity: 1;
+            border-radius: 50%;
+        }
+        .fullscreen-confetti-particle.ribbon { border-radius: 3px; }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -727,26 +1245,26 @@
             <canvas id="doodlingZone"></canvas>
         
         <!-- Tools Toggle Button -->
-        <button class="tools-toggle" id="toolsToggle" title="Toggle Drawing Tools" data-action="toggleTools">
+        <button class="tools-toggle" id="toolsToggle" title="Toggle Drawing Tools">
             <span class="material-symbols-outlined">palette</span>
             <span>Tools</span>
         </button>
 
         <!-- Controls Toggle Button -->
-        <button class="controls-toggle" id="controlsToggle" title="Toggle Game Controls" data-action="toggleControls">
+        <button class="controls-toggle" id="controlsToggle" title="Toggle Game Controls">
             <span class="material-symbols-outlined">gamepad</span>
             <span>Controls</span>
         </button>
 
             <div class="top-bar">
-                <button id="previousSoundButton" class="nav-button" title="Previous Sound" disabled data-action="previousSound">
+                <button id="previousSoundButton" class="nav-button" title="Previous Sound" disabled>
                     <span class="material-symbols-outlined">arrow_back_ios</span>
                 </button>
                 <div class="title-counter-group">
                     <div id="appTitle">Draw the Sound</div>
                     <div id="soundCounterDisplay">Sound 0 / 0</div>
                 </div>
-                <button id="nextSoundButton" class="nav-button" title="Next Sound" disabled data-action="nextSound">
+                <button id="nextSoundButton" class="nav-button" title="Next Sound" disabled>
                     <span class="material-symbols-outlined">arrow_forward_ios</span>
                 </button>
             </div>
@@ -812,20 +1330,20 @@
         <div class="controls-container" id="controlsContainer">
                 <div id="gameInfoDisplay">Click 'Play Sound' to start!</div>
                 <div class="action-buttons-row">
-                    <button id="playSoundButton" class="action-button" title="Play Sound" data-action="playSound">
+                    <button id="playSoundButton" class="action-button" title="Play Sound">
                         <span class="material-symbols-outlined">volume_up</span> <span>Play</span>
                     </button>
-                    <button id="giveHintButton" class="action-button" title="✨ AI Hint ✨" disabled data-action="giveHint">
+                    <button id="giveHintButton" class="action-button" title="✨ AI Hint ✨" disabled>
                         <span class="material-symbols-outlined">lightbulb</span> <span>✨ AI Hint</span>
                     </button>
-                <button id="shareDrawingButton" class="action-button" title="Share Drawing" disabled data-action="shareDrawing">
+                <button id="shareDrawingButton" class="action-button" title="Share Drawing" disabled>
                     <span class="material-symbols-outlined">share</span> <span>Share</span>
                     </button>
-                    <button id="resetGameButton" class="action-button" title="Reset Game" data-action="resetGame">
+                    <button id="resetGameButton" class="action-button" title="Reset Game">
                         <span class="material-symbols-outlined">refresh</span> <span>Reset</span>
                     </button>
                 </div>
-                <button id="submitDrawingButton" title="✨ Get AI Feedback & Submit ✨" disabled data-action="submitDrawing">
+                <button id="submitDrawingButton" title="✨ Get AI Feedback & Submit ✨" disabled>
                      <span class="material-symbols-outlined">auto_awesome</span> <span>✨ Get AI Feedback & Submit ✨</span>
                 </button>
             </div>
@@ -1405,392 +1923,289 @@
             }
         };
 
-        // --- Optimized DOM Element References (Cached) ---
-        const DOM = {
-            playSoundButton: document.getElementById('playSoundButton'),
-            giveHintButton: document.getElementById('giveHintButton'),
-            resetGameButton: document.getElementById('resetGameButton'),
-            shareDrawingButton: document.getElementById('shareDrawingButton'),
-            previousSoundButton: document.getElementById('previousSoundButton'),
-            nextSoundButton: document.getElementById('nextSoundButton'),
-            canvas: document.getElementById('doodlingZone'),
-            messageBox: document.getElementById('messageBox'),
-            gameInfoDisplay: document.getElementById('gameInfoDisplay'),
-            soundCounterDisplay: document.getElementById('soundCounterDisplay'),
-            submitDrawingButton: document.getElementById('submitDrawingButton'),
-            gameContainer: document.getElementById('game-container'),
-            toolsToggle: document.getElementById('toolsToggle'),
-            drawingToolsPanel: document.getElementById('drawingToolsPanel'),
-            controlsToggle: document.getElementById('controlsToggle'),
-            controlsContainer: document.getElementById('controlsContainer'),
-            colorPalette: document.getElementById('colorPalette'),
-            brushSizeOptions: null, // Will be cached on first use
-            toolButtons: null // Will be cached on first use
-        };
-        // Cache canvas context
-        const ctx = DOM.canvas.getContext('2d');
+        // --- DOM Element References ---
+        const playSoundButton = document.getElementById('playSoundButton');
+        const giveHintButton = document.getElementById('giveHintButton');
+        const resetGameButton = document.getElementById('resetGameButton'); 
+        const shareDrawingButton = document.getElementById('shareDrawingButton');
+        const previousSoundButton = document.getElementById('previousSoundButton');
+        const nextSoundButton = document.getElementById('nextSoundButton');
+        const canvas = document.getElementById('doodlingZone');
+        const ctx = canvas.getContext('2d');
+        const messageBox = document.getElementById('messageBox');
+        const gameInfoDisplay = document.getElementById('gameInfoDisplay');
+        const soundCounterDisplay = document.getElementById('soundCounterDisplay');
+        const submitDrawingButton = document.getElementById('submitDrawingButton');
+        const gameContainer = document.getElementById('game-container');
+        const toolsToggle = document.getElementById('toolsToggle');
+        const drawingToolsPanel = document.getElementById('drawingToolsPanel');
+        const controlsToggle = document.getElementById('controlsToggle');
+        const controlsContainer = document.getElementById('controlsContainer');
 
-        // --- Optimized Constants ---
-        const CONSTANTS = {
-            MESSAGE_DURATION: 3000,
-            CANVAS_BLANK_CHECK_TIMEOUT: 100,
-            RESPONSIVE_BREAKPOINTS: {
-                MOBILE: 768,
-                DESKTOP: 1200
-            },
-            GRID_CONFIGS: {
-                MOBILE: { columns: 'repeat(4, 1fr)', gap: '4px', colorSize: '24px', brushSize: '28px' },
-                TABLET: { columns: 'repeat(3, 1fr)', gap: '6px', colorSize: '28px', brushSize: '32px' },
-                DESKTOP: { columns: 'repeat(4, 1fr)', gap: '8px', colorSize: '32px', brushSize: '36px' }
-            }
-        };
+        let drawing = false; 
+        let messageBoxTimeout;
+        let currentChallenge = null; 
+        let hintUsed = false;
+        let audioPlayer = null; 
+        let currentSoundIndex = -1; 
+        let soundPlayedForCurrentChallenge = false; 
+        let toneJsStarted = false;
+        let isAudioLoading = false; 
+        let isAIGenerationInProgress = false;
+        let lastDrawingId = null;
+        let toolsPanelVisible = true;
+        let controlsPanelVisible = true;
 
-        // --- Optimized State Variables ---
-        let gameState = {
-            drawing: false,
-            messageBoxTimeout: null,
-            currentChallenge: null,
-            hintUsed: false,
-            audioPlayer: null,
-            currentSoundIndex: -1,
-            soundPlayedForCurrentChallenge: false,
-            toneJsStarted: false,
-            isAudioLoading: false,
-            isAIGenerationInProgress: false,
-            lastDrawingId: null,
-            toolsPanelVisible: true,
-            controlsPanelVisible: true
-        };
-
-        // --- Sound Challenge Data ---
+        // --- Sound Challenge Data (will be populated by SoundLibrary) ---
         const soundChallenges = [];
         let totalSounds = 0;
 
-        // --- Optimized Toggle Functions ---
-        const toggleDrawingTools = () => {
-            gameState.toolsPanelVisible = !gameState.toolsPanelVisible;
-            const panel = DOM.drawingToolsPanel;
-            const toggle = DOM.toolsToggle;
-            const textElement = toggle.querySelector('span:last-child');
-            
-            if (gameState.toolsPanelVisible) {
-                panel.classList.remove('collapsed');
-                textElement.textContent = 'Hide';
+        // --- Drawing Tools Toggle ---
+        function toggleDrawingTools() {
+            toolsPanelVisible = !toolsPanelVisible;
+            if (toolsPanelVisible) {
+                drawingToolsPanel.classList.remove('collapsed');
+                toolsToggle.querySelector('span:last-child').textContent = 'Hide';
             } else {
-                panel.classList.add('collapsed');
-                textElement.textContent = 'Tools';
+                drawingToolsPanel.classList.add('collapsed');
+                toolsToggle.querySelector('span:last-child').textContent = 'Tools';
             }
-        };
+        }
 
-        const toggleControls = () => {
-            gameState.controlsPanelVisible = !gameState.controlsPanelVisible;
-            const container = DOM.controlsContainer;
-            const toggle = DOM.controlsToggle;
-            const textElement = toggle.querySelector('span:last-child');
-            
-            if (gameState.controlsPanelVisible) {
-                container.classList.remove('collapsed');
-                textElement.textContent = 'Hide';
+        // --- Controls Toggle ---
+        function toggleControls() {
+            controlsPanelVisible = !controlsPanelVisible;
+            if (controlsPanelVisible) {
+                controlsContainer.classList.remove('collapsed');
+                controlsToggle.querySelector('span:last-child').textContent = 'Hide';
             } else {
-                container.classList.add('collapsed');
-                textElement.textContent = 'Controls';
+                controlsContainer.classList.add('collapsed');
+                controlsToggle.querySelector('span:last-child').textContent = 'Controls';
             }
-        };
+        }
 
-        // --- Optimized Responsive Drawing Tools ---
-        const updateResponsiveDrawingTools = (() => {
-            let lastWidth = 0;
-            
-            return () => {
-                const currentWidth = window.innerWidth;
-                if (Math.abs(currentWidth - lastWidth) < 50) return; // Debounce small changes
-                lastWidth = currentWidth;
+        toolsToggle.addEventListener('click', toggleDrawingTools);
+        controlsToggle.addEventListener('click', toggleControls);
 
-                // Cache elements on first use
-                if (!DOM.brushSizeOptions) {
-                    DOM.brushSizeOptions = document.querySelectorAll('.brush-size-option');
-                    DOM.toolButtons = document.querySelectorAll('.tool-button');
-                }
+        // Update the responsive adjustments for drawing tools
+        const updateResponsiveDrawingTools = () => {
+            const colorPalette = document.getElementById('colorPalette');
+            const colorOptions = colorPalette.querySelectorAll('.color-option');
+            const brushSizeOptions = document.querySelectorAll('.brush-size-option');
+            const toolButtons = document.querySelectorAll('.tool-button');
 
-                const colorOptions = DOM.colorPalette.querySelectorAll('.color-option');
-                let config;
-
-                if (currentWidth >= CONSTANTS.RESPONSIVE_BREAKPOINTS.DESKTOP) {
-                    config = CONSTANTS.GRID_CONFIGS.DESKTOP;
-                } else if (currentWidth >= CONSTANTS.RESPONSIVE_BREAKPOINTS.MOBILE) {
-                    config = CONSTANTS.GRID_CONFIGS.TABLET;
-                } else {
-                    config = CONSTANTS.GRID_CONFIGS.MOBILE;
-                }
-
-                // Apply styles efficiently
-                const palette = DOM.colorPalette;
-                palette.style.gridTemplateColumns = config.columns;
-                palette.style.gap = config.gap;
-
-                // Batch DOM updates
+            if (window.innerWidth >= 1200) {
+                // Large screens
+                colorPalette.style.gridTemplateColumns = 'repeat(4, 1fr)';
+                colorPalette.style.gap = '8px';
                 colorOptions.forEach(option => {
-                    option.style.width = config.colorSize;
-                    option.style.height = config.colorSize;
+                    option.style.width = '32px';
+                    option.style.height = '32px';
                 });
-
-                DOM.brushSizeOptions.forEach(option => {
-                    option.style.width = config.brushSize;
-                    option.style.height = config.brushSize;
+                brushSizeOptions.forEach(option => {
+                    option.style.width = '36px';
+                    option.style.height = '36px';
                 });
+            } else if (window.innerWidth >= 768) {
+                // Medium screens
+                colorPalette.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                colorPalette.style.gap = '6px';
+                colorOptions.forEach(option => {
+                    option.style.width = '28px';
+                    option.style.height = '28px';
+                });
+                brushSizeOptions.forEach(option => {
+                    option.style.width = '32px';
+                    option.style.height = '32px';
+                });
+                toolButtons.forEach(button => {
+                    button.style.padding = '8px';
+                    button.style.fontSize = '0.8rem';
+                });
+            } else {
+                // Small screens - reset to default
+                colorPalette.style.gridTemplateColumns = 'repeat(4, 1fr)';
+                colorPalette.style.gap = '4px';
+                colorOptions.forEach(option => {
+                    option.style.width = '24px';
+                    option.style.height = '24px';
+                });
+                brushSizeOptions.forEach(option => {
+                    option.style.width = '28px';
+                    option.style.height = '28px';
+                });
+                toolButtons.forEach(button => {
+                    button.style.padding = '6px';
+                    button.style.fontSize = '0.7rem';
+                });
+            }
+        };
 
-                if (currentWidth >= CONSTANTS.RESPONSIVE_BREAKPOINTS.MOBILE && currentWidth < CONSTANTS.RESPONSIVE_BREAKPOINTS.DESKTOP) {
-                    DOM.toolButtons.forEach(button => {
-                        button.style.padding = '8px';
-                        button.style.fontSize = '0.8rem';
-                    });
-                } else if (currentWidth < CONSTANTS.RESPONSIVE_BREAKPOINTS.MOBILE) {
-                    DOM.toolButtons.forEach(button => {
-                        button.style.padding = '6px';
-                        button.style.fontSize = '0.7rem';
-                    });
-                }
-            };
-        })();
+        // --- Doodling Zone ---
+        function resizeCanvas() {
+            const containerWidth = window.innerWidth;
+            const containerHeight = window.innerHeight;
 
-        // --- Optimized Canvas Functions ---
-        const resizeCanvas = (() => {
-            let resizeTimeout;
+            let oldDrawing = null;
+            if (canvas.width > 0 && canvas.height > 0) {
+                try { oldDrawing = ctx.getImageData(0, 0, canvas.width, canvas.height); }
+                catch (e) { console.warn("Could not get image data (tainted or zero-size).", e); }
+            }
             
-            return () => {
-                clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(() => {
-                    const containerWidth = window.innerWidth;
-                    const containerHeight = window.innerHeight;
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
+            
+            ctx.strokeStyle = GameModules.DrawingTools.currentColor;
+            ctx.lineWidth = GameModules.DrawingTools.currentBrushSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
 
-                    let oldDrawing = null;
-                    if (DOM.canvas.width > 0 && DOM.canvas.height > 0) {
-                        try { 
-                            oldDrawing = ctx.getImageData(0, 0, DOM.canvas.width, DOM.canvas.height); 
-                        } catch (e) { 
-                            console.warn("Could not get image data:", e); 
-                        }
-                    }
-                    
-                    DOM.canvas.width = containerWidth;
-                    DOM.canvas.height = containerHeight;
-                    
-                    // Restore canvas context properties
-                    ctx.strokeStyle = GameModules.DrawingTools.currentColor;
-                    ctx.lineWidth = GameModules.DrawingTools.currentBrushSize;
-                    ctx.lineCap = 'round';
-                    ctx.lineJoin = 'round';
+            if (oldDrawing) {
+                try { ctx.putImageData(oldDrawing, 0, 0); }
+                catch (e) { console.warn("Could not restore image data.", e); }
+            }
+        }
 
-                    if (oldDrawing) {
-                        try { 
-                            ctx.putImageData(oldDrawing, 0, 0); 
-                        } catch (e) { 
-                            console.warn("Could not restore image data:", e); 
-                        }
-                    }
-                }, 100); // Debounce resize events
-            };
-        })();
-
-        // --- Optimized Utility Functions ---
-        const ensureToneStarted = async () => {
-            if (!gameState.toneJsStarted) {
+        // --- Utility Functions ---
+        async function ensureToneStarted() {
+            if (!toneJsStarted) {
                 try {
                     await Tone.start();
-                    gameState.toneJsStarted = true;
-                    console.log("Tone.js context started successfully");
+                    toneJsStarted = true;
+                    console.log("Tone.js context started successfully by user interaction.");
                 } catch (e) {
                     console.error("Error starting Tone.js context:", e);
                     showMessageBox("Could not initialize audio. Please refresh or try a different browser.");
-                    DOM.playSoundButton.disabled = true;
-                    DOM.giveHintButton.disabled = true;
+                    playSoundButton.disabled = true; 
+                    giveHintButton.disabled = true;
                 }
             }
-        };
+        }
 
-        const showMessageBox = (() => {
-            return (message, duration = CONSTANTS.MESSAGE_DURATION) => {
-                clearTimeout(gameState.messageBoxTimeout);
-                DOM.messageBox.innerHTML = message;
-                DOM.messageBox.style.display = 'block';
-                void DOM.messageBox.offsetWidth; // Force reflow
-                DOM.messageBox.classList.add('show');
-                
-                if (duration > 0) {
-                    gameState.messageBoxTimeout = setTimeout(() => {
-                        DOM.messageBox.classList.remove('show');
-                        setTimeout(() => {
-                            if (!DOM.messageBox.classList.contains('show')) {
-                                DOM.messageBox.style.display = 'none';
-                            }
-                        }, 350);
-                    }, duration);
-                }
-            };
-        })();
+        function showMessageBox(message, duration = 3000) {
+            clearTimeout(messageBoxTimeout);
+            messageBox.innerHTML = message;
+            messageBox.style.display = 'block'; 
+            void messageBox.offsetWidth; 
+            messageBox.classList.add('show');
+            if (duration > 0) {
+                messageBoxTimeout = setTimeout(() => {
+                    messageBox.classList.remove('show');
+                    setTimeout(() => { if (!messageBox.classList.contains('show')) messageBox.style.display = 'none'; }, 350);
+                }, duration);
+            }
+        }
 
-        // --- Micro-Optimizations ---
+        function isCanvasBlank(canvasToCheck) {
+            const tempCompCanvas = document.createElement('canvas');
+            if (!canvasToCheck || canvasToCheck.width === 0 || canvasToCheck.height === 0) return true;
+            tempCompCanvas.width = canvasToCheck.width;
+            tempCompCanvas.height = canvasToCheck.height;
+            return canvasToCheck.toDataURL() === tempCompCanvas.toDataURL();
+        }
         
-        // Memoized canvas blank check with improved performance
-        const isCanvasBlank = (() => {
-            let lastCanvasData = null;
-            let lastResult = true;
-            
-            return (canvasToCheck) => {
-                if (!canvasToCheck?.width || !canvasToCheck?.height) return true;
-                
-                const currentData = canvasToCheck.toDataURL();
-                if (currentData === lastCanvasData) return lastResult;
-                
-                lastCanvasData = currentData;
-                // Use a more efficient blank check
-                const canvas = document.createElement('canvas');
-                canvas.width = canvasToCheck.width;
-                canvas.height = canvasToCheck.height;
-                lastResult = currentData === canvas.toDataURL();
-                return lastResult;
-            };
-        })();
-
-        // Optimized button state updates with batching
-        const updateButtonStates = (() => {
-            let updateScheduled = false;
-            
-            return () => {
-                if (updateScheduled) return;
-                updateScheduled = true;
-                
-                requestAnimationFrame(() => {
-                    const commonDisableCondition = gameState.isAIGenerationInProgress || gameState.isAudioLoading;
-                    
-                    // Batch DOM updates
-                    const updates = [
-                        [DOM.previousSoundButton, gameState.currentSoundIndex <= 0 || commonDisableCondition],
-                        [DOM.nextSoundButton, (gameState.currentSoundIndex >= totalSounds - 1 || gameState.currentSoundIndex === -1) || commonDisableCondition],
-                        [DOM.resetGameButton, commonDisableCondition]
-                    ];
-
-                    if (gameState.currentChallenge) {
-                        if (gameState.isAudioLoading) {
-                            updatePlayButtonUI("loading");
-                        } else if (!gameState.audioPlayer || gameState.audioPlayer.state === "stopped") {
-                            updatePlayButtonUI(gameState.soundPlayedForCurrentChallenge ? "replay" : "play");
-                        } else if (gameState.audioPlayer.state === "started") {
-                            updatePlayButtonUI("playing");
-                        } else if (gameState.audioPlayer.state === "paused") {
-                            updatePlayButtonUI("paused");
-                        }
-
-                        updates.push(
-                            [DOM.giveHintButton, gameState.hintUsed || !gameState.soundPlayedForCurrentChallenge || commonDisableCondition],
-                            [DOM.submitDrawingButton, !gameState.soundPlayedForCurrentChallenge || commonDisableCondition || isCanvasBlank(DOM.canvas)],
-                            [DOM.shareDrawingButton, !gameState.lastDrawingId || commonDisableCondition]
-                        );
-                    } else {
-                        updatePlayButtonUI("play");
-                        updates.push(
-                            [DOM.giveHintButton, true],
-                            [DOM.submitDrawingButton, true],
-                            [DOM.shareDrawingButton, true]
-                        );
-                    }
-
-                    // Apply all updates in one batch
-                    updates.forEach(([element, disabled]) => {
-                        if (element.disabled !== disabled) element.disabled = disabled;
-                    });
-
-                    GameModules.DrawingTools.updateToolButtons();
-                    updateScheduled = false;
-                });
-            };
-        })();
-
-        // Optimized sound counter with string template caching
-        const updateSoundCounter = (() => {
-            const templates = {
-                current: (current, total) => `Sound ${current + 1} / ${total}`,
-                complete: () => 'Category Complete!',
-                empty: (total) => `Sound - / ${total}`
-            };
-            
-            return () => {
-                totalSounds = soundChallenges.length;
-                const current = gameState.currentSoundIndex;
-                
-                let text;
-                if (current >= 0 && current < totalSounds) {
-                    text = templates.current(current, totalSounds);
-                } else if (current >= totalSounds) {
-                    text = templates.complete();
-                } else {
-                    text = templates.empty(totalSounds);
-                }
-                
-                if (DOM.soundCounterDisplay.textContent !== text) {
-                    DOM.soundCounterDisplay.textContent = text;
-                }
-            };
-        })();
-
-        function updatePlayButtonUI(state) {
-            const iconEl = DOM.playSoundButton.querySelector('.material-symbols-outlined');
-            const textEl = DOM.playSoundButton.querySelector('span:last-child');
+        function updateSoundCounter() {
+            totalSounds = soundChallenges.length;
+            if (currentSoundIndex >= 0 && currentSoundIndex < totalSounds) {
+                soundCounterDisplay.textContent = `Sound ${currentSoundIndex + 1} / ${totalSounds}`;
+            } else if (currentSoundIndex >= totalSounds) {
+                soundCounterDisplay.textContent = `Category Complete!`;
+            } else {
+                soundCounterDisplay.textContent = `Sound - / ${totalSounds}`;
+            }
+        }
+        
+        function updatePlayButtonUI(state) { 
+            const iconEl = playSoundButton.querySelector('.material-symbols-outlined');
+            const textEl = playSoundButton.querySelector('span:last-child');
 
             switch (state) {
                 case "loading":
                     iconEl.textContent = "hourglass_empty";
                     if(textEl) textEl.textContent = "Loading";
-                    DOM.playSoundButton.disabled = true;
+                    playSoundButton.disabled = true;
                     break;
                 case "playing": 
                     iconEl.textContent = "pause";
                     if(textEl) textEl.textContent = "Pause";
-                    DOM.playSoundButton.disabled = false;
+                    playSoundButton.disabled = false;
                     break;
                 case "paused": 
                     iconEl.textContent = "play_arrow";
                     if(textEl) textEl.textContent = "Resume";
-                    DOM.playSoundButton.disabled = false;
+                    playSoundButton.disabled = false;
                     break;
                 case "replay": 
                     iconEl.textContent = "replay";
                     if(textEl) textEl.textContent = "Replay";
-                    DOM.playSoundButton.disabled = false;
+                    playSoundButton.disabled = false;
                     break;
                 case "play": 
                 default:
                     iconEl.textContent = "volume_up";
                     if(textEl) textEl.textContent = "Play";
-                    DOM.playSoundButton.disabled = !currentChallenge || currentSoundIndex >= totalSounds || isAudioLoading || isAIGenerationInProgress;
+                    playSoundButton.disabled = !currentChallenge || currentSoundIndex >= totalSounds || isAudioLoading || isAIGenerationInProgress;
                     break;
             }
         }
 
+        function updateButtonStates() {
+            const commonDisableCondition = isAIGenerationInProgress || isAudioLoading;
+            previousSoundButton.disabled = currentSoundIndex <= 0 || commonDisableCondition;
+            nextSoundButton.disabled = (currentSoundIndex >= totalSounds - 1 || currentSoundIndex === -1) || commonDisableCondition;
+            
+            if (currentChallenge) {
+                if (isAudioLoading) {
+                    updatePlayButtonUI("loading");
+                } else if (!audioPlayer || audioPlayer.state === "stopped") {
+                     updatePlayButtonUI(soundPlayedForCurrentChallenge ? "replay" : "play");
+                } else if (audioPlayer.state === "started") {
+                    updatePlayButtonUI("playing");
+                } else if (audioPlayer.state === "paused") {
+                    updatePlayButtonUI("paused");
+                }
+                playSoundButton.disabled = playSoundButton.disabled || commonDisableCondition;
+
+                giveHintButton.disabled = hintUsed || !soundPlayedForCurrentChallenge || commonDisableCondition;
+                submitDrawingButton.disabled = !soundPlayedForCurrentChallenge || commonDisableCondition || isCanvasBlank(canvas);
+                shareDrawingButton.disabled = !lastDrawingId || commonDisableCondition;
+            } else { 
+                updatePlayButtonUI("play"); 
+                playSoundButton.disabled = playSoundButton.disabled || commonDisableCondition;
+                giveHintButton.disabled = true;
+                submitDrawingButton.disabled = true;
+                shareDrawingButton.disabled = true;
+            }
+            resetGameButton.disabled = commonDisableCondition;
+            
+            // Update drawing tool buttons
+            GameModules.DrawingTools.updateToolButtons();
+        }
+
         // --- Reset Game Functionality ---
         function resetGame() {
-            ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
-            gameState.currentChallenge = null;
-            gameState.hintUsed = false;
-            gameState.soundPlayedForCurrentChallenge = false;
-            gameState.isAudioLoading = false;
-            gameState.isAIGenerationInProgress = false;
-            gameState.lastDrawingId = null;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            currentChallenge = null;
+            hintUsed = false;
+            soundPlayedForCurrentChallenge = false;
+            isAudioLoading = false;
+            isAIGenerationInProgress = false;
+            lastDrawingId = null;
             
-            if (gameState.audioPlayer) {
-                if (gameState.audioPlayer.state === "started") gameState.audioPlayer.stop();
-                gameState.audioPlayer.dispose(); 
-                gameState.audioPlayer = null;
+            if (audioPlayer) {
+                if (audioPlayer.state === "started") audioPlayer.stop();
+                audioPlayer.dispose(); 
+                audioPlayer = null;
             }
             
-            gameState.currentSoundIndex = -1; 
+            currentSoundIndex = -1; 
             GameModules.DrawingTools.undoStack = [];
             GameModules.DrawingTools.redoStack = [];
             GameModules.Scoring.resetScore();
             
             loadChallenge(0); 
             showMessageBox('Game Reset! Ready for a new challenge.', 2000);
-            DOM.gameInfoDisplay.textContent = "Click 'Play Sound' to start!";
+            gameInfoDisplay.textContent = "Click 'Play Sound' to start!";
         }
 
         // --- Enhanced AI Functions ---
@@ -1884,10 +2299,10 @@ Be encouraging but honest in your assessment.`;
         }
 
         async function getAIHint(soundName, expectedElements) {
-            gameState.isAIGenerationInProgress = true;
+            isAIGenerationInProgress = true;
             updateButtonStates();
-            const originalButtonText = DOM.giveHintButton.querySelector('span:last-child').textContent;
-            DOM.giveHintButton.querySelector('span:last-child').innerHTML = `Thinking... <span class="loading-spinner"></span>`;
+            const originalButtonText = giveHintButton.querySelector('span:last-child').textContent;
+            giveHintButton.querySelector('span:last-child').innerHTML = `Thinking... <span class="loading-spinner"></span>`;
 
             try {
                 const apiKey = CONFIG.getApiKey();
@@ -1920,8 +2335,8 @@ Be encouraging but honest in your assessment.`;
                 console.error("Error getting AI hint:", error);
                 return `Think about the visual elements that represent "${soundName}". Check your API key for better hints!`;
             } finally {
-                gameState.isAIGenerationInProgress = false;
-                DOM.giveHintButton.querySelector('span:last-child').textContent = originalButtonText;
+                isAIGenerationInProgress = false;
+                giveHintButton.querySelector('span:last-child').textContent = originalButtonText;
                 updateButtonStates();
             }
         }
@@ -1929,64 +2344,64 @@ Be encouraging but honest in your assessment.`;
         // --- Sound Functions ---
         async function playFreesoundAudio(audioUrl) {
             await ensureToneStarted(); 
-            if (gameState.isAudioLoading) return;
+            if (isAudioLoading) return;
 
             // Check if we can reuse existing player
-            if (gameState.audioPlayer && gameState.audioPlayer.buffer && gameState.audioPlayer.buffer.url === audioUrl) {
-                if (gameState.audioPlayer.state === "started") { 
-                    gameState.audioPlayer.pause(); 
+            if (audioPlayer && audioPlayer.buffer && audioPlayer.buffer.url === audioUrl) {
+                if (audioPlayer.state === "started") { 
+                    audioPlayer.pause(); 
                     updatePlayButtonUI("paused"); 
                     return; 
                 }
-                else if (gameState.audioPlayer.state === "paused") { 
-                    gameState.audioPlayer.start(); 
+                else if (audioPlayer.state === "paused") { 
+                    audioPlayer.start(); 
                     updatePlayButtonUI("playing"); 
                     return; 
                 }
             }
             
-            if (gameState.audioPlayer) { 
-                if (gameState.audioPlayer.state === "started") gameState.audioPlayer.stop();
-                gameState.audioPlayer.dispose(); gameState.audioPlayer = null;
+            if (audioPlayer) { 
+                if (audioPlayer.state === "started") audioPlayer.stop();
+                audioPlayer.dispose(); audioPlayer = null;
             }
 
-            gameState.isAudioLoading = true;
+            isAudioLoading = true;
             updatePlayButtonUI("loading");
-            DOM.gameInfoDisplay.innerHTML = `Loading sound... <span class="loading-spinner"></span>`;
+            gameInfoDisplay.innerHTML = `Loading sound... <span class="loading-spinner"></span>`;
             updateButtonStates();
 
             try {
                 // Try to use cached version first
                 const cachedUrl = await GameModules.SoundLibrary.cacheSound(audioUrl);
-                gameState.audioPlayer = new Tone.Player(cachedUrl).toDestination();
+                audioPlayer = new Tone.Player(cachedUrl).toDestination();
                 
                 await new Promise((resolve, reject) => {
-                    if (gameState.audioPlayer.loaded) { resolve(); } 
+                    if (audioPlayer.loaded) { resolve(); } 
                     else {
-                        gameState.audioPlayer.buffer.onload = resolve;
-                        gameState.audioPlayer.buffer.onerror = reject;
+                        audioPlayer.buffer.onload = resolve;
+                        audioPlayer.buffer.onerror = reject;
                     }
                 });
                 
-                gameState.isAudioLoading = false; 
-                gameState.audioPlayer.start(); 
-                gameState.soundPlayedForCurrentChallenge = true; 
-                DOM.gameInfoDisplay.textContent = `Draw what you heard!`; 
+                isAudioLoading = false; 
+                audioPlayer.start(); 
+                soundPlayedForCurrentChallenge = true; 
+                gameInfoDisplay.textContent = `Draw what you heard!`; 
                 updatePlayButtonUI("playing");
                 updateButtonStates(); 
 
-                gameState.audioPlayer.onstop = () => { 
-                    if (gameState.currentChallenge && gameState.audioPlayer && !gameState.audioPlayer.disposed && gameState.audioPlayer.buffer.url === gameState.currentChallenge.freesoundUrl) {
-                         if (gameState.audioPlayer.state !== "started" && gameState.audioPlayer.state !== "paused") { 
+                audioPlayer.onstop = () => { 
+                    if (currentChallenge && audioPlayer && !audioPlayer.disposed && audioPlayer.buffer.url === currentChallenge.freesoundUrl) {
+                         if (audioPlayer.state !== "started" && audioPlayer.state !== "paused") { 
                             updatePlayButtonUI("replay");
                          }
                     }
                 };
             } catch (error) { 
                 console.error("Error playing audio:", error);
-                gameState.isAudioLoading = false;
+                isAudioLoading = false;
                 showMessageBox('Audio playback error. See console.');
-                DOM.gameInfoDisplay.textContent = gameState.currentChallenge ? `Error loading "${gameState.currentChallenge.name}".` : "Error loading sound.";
+                gameInfoDisplay.textContent = currentChallenge ? `Error loading "${currentChallenge.name}".` : "Error loading sound.";
                 updatePlayButtonUI("play"); updateButtonStates(); 
             }
         }
@@ -1995,33 +2410,33 @@ Be encouraging but honest in your assessment.`;
         function loadChallenge(index) {
             if (index < 0 ) index = 0; 
             
-            if (gameState.audioPlayer) {
-                if (gameState.audioPlayer.state === "started") gameState.audioPlayer.stop();
-                gameState.audioPlayer.dispose(); gameState.audioPlayer = null;
+            if (audioPlayer) {
+                if (audioPlayer.state === "started") audioPlayer.stop();
+                audioPlayer.dispose(); audioPlayer = null;
             }
 
             if (index >= totalSounds) {
-                DOM.gameInfoDisplay.textContent = "Category complete! 🎉 Choose another category or reset.";
-                gameState.currentChallenge = null;
-                gameState.currentSoundIndex = totalSounds; 
+                gameInfoDisplay.textContent = "Category complete! 🎉 Choose another category or reset.";
+                currentChallenge = null;
+                currentSoundIndex = totalSounds; 
                 updateSoundCounter(); updateButtonStates(); 
                 document.getElementById('categorySelector').classList.add('show');
                 return;
             }
 
-            gameState.currentSoundIndex = index;
-            gameState.currentChallenge = soundChallenges[gameState.currentSoundIndex];
-            gameState.hintUsed = false;
-            gameState.soundPlayedForCurrentChallenge = false;
-            gameState.isAudioLoading = false; 
-            gameState.isAIGenerationInProgress = false;
-            gameState.lastDrawingId = null;
+            currentSoundIndex = index;
+            currentChallenge = soundChallenges[currentSoundIndex];
+            hintUsed = false;
+            soundPlayedForCurrentChallenge = false;
+            isAudioLoading = false; 
+            isAIGenerationInProgress = false;
+            lastDrawingId = null;
             
-            ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             GameModules.DrawingTools.undoStack = [];
             GameModules.DrawingTools.redoStack = [];
             
-            DOM.gameInfoDisplay.textContent = `Listen to the sound!`; 
+            gameInfoDisplay.textContent = `Listen to the sound!`; 
             updateSoundCounter(); updateButtonStates(); 
             document.getElementById('categorySelector').classList.remove('show');
         }
@@ -2031,7 +2446,7 @@ Be encouraging but honest in your assessment.`;
             const confettiCount = 180; 
             const colors = ['#FFD700', '#FFAB00', '#FF6F00', '#FFFFFF', '#FF3D00', '#DD2C00', '#f08080', '#add8e6', '#87CEEB', '#FFB6C1'];
             
-            const submitButtonRect = DOM.submitDrawingButton.getBoundingClientRect();
+            const submitButtonRect = submitDrawingButton.getBoundingClientRect();
             const originX = submitButtonRect.left + submitButtonRect.width / 2;
             const originY = submitButtonRect.top + submitButtonRect.height / 2;
 
@@ -2096,369 +2511,171 @@ Be encouraging but honest in your assessment.`;
             }
         }
 
-
-        // --- Advanced Performance Optimizations ---
+        // --- Event Listeners ---
+        resetGameButton.addEventListener('click', resetGame);
         
-        // Object Pool for Performance
-        const ObjectPool = {
-            confettiPool: [],
-            getConfetti() {
-                return this.confettiPool.pop() || document.createElement('div');
-            },
-            releaseConfetti(element) {
-                element.remove();
-                if (this.confettiPool.length < 50) this.confettiPool.push(element);
+        previousSoundButton.addEventListener('click', async () => {
+            await ensureToneStarted(); 
+            if (currentSoundIndex > 0 && !isAIGenerationInProgress && !isAudioLoading) {
+                loadChallenge(currentSoundIndex - 1);
             }
-        };
+        });
 
-        // Optimized Event Delegation System
-        const EventManager = {
-            handlers: new Map(),
+        nextSoundButton.addEventListener('click', async () => {
+            await ensureToneStarted();
+            if (currentSoundIndex < totalSounds && !isAIGenerationInProgress && !isAudioLoading) { 
+                loadChallenge(currentSoundIndex + 1);
+            }
+        });
+
+        playSoundButton.addEventListener('click', async () => {
+            await ensureToneStarted(); 
+            if (isAIGenerationInProgress || isAudioLoading) return;
             
-            init() {
-                // Single event listener for all button clicks
-                document.addEventListener('click', this.handleClick.bind(this), { passive: false });
-                document.addEventListener('touchstart', this.handleTouch.bind(this), { passive: false });
-                document.addEventListener('touchmove', this.handleTouch.bind(this), { passive: false });
-                document.addEventListener('touchend', this.handleTouch.bind(this), { passive: false });
-                document.addEventListener('mousedown', this.handleMouse.bind(this), { passive: false });
-                document.addEventListener('mousemove', this.handleMouse.bind(this), { passive: false });
-                document.addEventListener('mouseup', this.handleMouse.bind(this), { passive: false });
-            },
-
-            handleClick(e) {
-                const target = e.target.closest('[data-action]');
-                if (!target) return;
-                
-                const action = target.dataset.action;
-                const handler = this.handlers.get(action);
-                if (handler) {
-                    e.preventDefault();
-                    handler(e, target);
+            if (!currentChallenge) { 
+                if (currentSoundIndex === -1 || currentSoundIndex >= totalSounds) {
+                    loadChallenge(0); 
+                    if (currentChallenge) playFreesoundAudio(currentChallenge.freesoundUrl); 
                 }
-            },
-
-            handleTouch(e) {
-                if (e.target === DOM.canvas || DOM.canvas.contains(e.target)) {
-                    e.preventDefault();
-                    this.handleCanvasEvent(e);
-                }
-            },
-
-            handleMouse(e) {
-                if (e.target === DOM.canvas || DOM.canvas.contains(e.target)) {
-                    this.handleCanvasEvent(e);
-                }
-            },
-
-            handleCanvasEvent(e) {
-                const type = e.type;
-                if (type.includes('start') || type.includes('down')) {
-                    CanvasManager.startDrawing(e);
-                } else if (type.includes('move')) {
-                    CanvasManager.draw(e);
-                } else if (type.includes('end') || type.includes('up') || type.includes('leave')) {
-                    CanvasManager.stopDrawing();
-                }
-            },
-
-            register(action, handler) {
-                this.handlers.set(action, handler);
+                return;
             }
-        };
+            if (currentChallenge) playFreesoundAudio(currentChallenge.freesoundUrl); 
+        });
 
-        // Optimized Canvas Manager
-        const CanvasManager = {
-            rect: null,
-            lastUpdate: 0,
+        giveHintButton.addEventListener('click', async () => {
+            if (!currentChallenge || hintUsed || !soundPlayedForCurrentChallenge || isAIGenerationInProgress || isAudioLoading) {
+                 if (!currentChallenge) showMessageBox("Play a sound first to get a hint!", 2000);
+                 else if (!soundPlayedForCurrentChallenge) showMessageBox("Listen to the sound before getting a hint!", 2000);
+                 else if (hintUsed) showMessageBox("Hint already used for this sound!", 2000);
+                 return;
+            }
             
-            updateRect() {
-                this.rect = DOM.canvas.getBoundingClientRect();
-            },
+            const aiHint = await getAIHint(currentChallenge.name, currentChallenge.expectedElements);
+            gameInfoDisplay.innerHTML = `✨ AI Hint: ${aiHint} ${currentChallenge.emoji || ''}`;
+            hintUsed = true;
+            updateButtonStates();
+        });
 
-            getCoordinates(event) {
-                if (!this.rect || performance.now() - this.lastUpdate > 100) {
-                    this.updateRect();
-                    this.lastUpdate = performance.now();
-                }
-                
-                const clientX = event.touches?.[0]?.clientX ?? event.clientX;
-                const clientY = event.touches?.[0]?.clientY ?? event.clientY;
-                
-                return {
-                    x: (clientX - this.rect.left) * (DOM.canvas.width / this.rect.width),
-                    y: (clientY - this.rect.top) * (DOM.canvas.height / this.rect.height)
-                };
-            },
-
-            startDrawing(e) {
-                if (gameState.isAIGenerationInProgress || gameState.isAudioLoading) return;
-                
-                GameModules.DrawingTools.saveState();
-                gameState.drawing = true;
-                const { x, y } = this.getCoordinates(e);
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-            },
-
-            draw(e) {
-                if (!gameState.drawing || gameState.isAIGenerationInProgress || gameState.isAudioLoading) return;
-                const { x, y } = this.getCoordinates(e);
-                ctx.lineTo(x, y);
-                ctx.stroke();
-            },
-
-            stopDrawing() {
-                if (gameState.drawing) {
-                    gameState.drawing = false;
-                    updateButtonStates();
-                }
+        shareDrawingButton.addEventListener('click', () => {
+            if (lastDrawingId) {
+                GameModules.Storage.shareDrawing(lastDrawingId);
+            } else {
+                showMessageBox("No drawing to share! Submit a drawing first.", 2000);
             }
-        };
+        });
 
-        // Consolidated Game Actions
-        const GameActions = {
-            async playSound() {
-                await ensureToneStarted();
-                if (gameState.isAIGenerationInProgress || gameState.isAudioLoading) return;
-                
-                if (!gameState.currentChallenge) {
-                    if (gameState.currentSoundIndex === -1 || gameState.currentSoundIndex >= totalSounds) {
-                        loadChallenge(0);
-                        if (gameState.currentChallenge) playFreesoundAudio(gameState.currentChallenge.freesoundUrl);
-                    }
-                    return;
-                }
-                if (gameState.currentChallenge) playFreesoundAudio(gameState.currentChallenge.freesoundUrl);
-            },
+        submitDrawingButton.addEventListener('click', async () => {
+            if (!currentChallenge) { showMessageBox("Click 'Play Sound' to start!", 2500); return; }
+            if (isCanvasBlank(canvas)) { showMessageBox('Please draw something!', 2500); return; }
+            if (!soundPlayedForCurrentChallenge) { showMessageBox('Listen to the sound first!', 2500); return; }
+            if (isAIGenerationInProgress || isAudioLoading) return;
 
-            async previousSound() {
-                await ensureToneStarted();
-                if (gameState.currentSoundIndex > 0 && !gameState.isAIGenerationInProgress && !gameState.isAudioLoading) {
-                    loadChallenge(gameState.currentSoundIndex - 1);
-                }
-            },
-
-            async nextSound() {
-                await ensureToneStarted();
-                if (gameState.currentSoundIndex < totalSounds && !gameState.isAIGenerationInProgress && !gameState.isAudioLoading) {
-                    loadChallenge(gameState.currentSoundIndex + 1);
-                }
-            },
-
-            async giveHint() {
-                if (!gameState.currentChallenge || gameState.hintUsed || !gameState.soundPlayedForCurrentChallenge || 
-                    gameState.isAIGenerationInProgress || gameState.isAudioLoading) {
-                    const messages = {
-                        noChallenge: "Play a sound first to get a hint!",
-                        notPlayed: "Listen to the sound before getting a hint!",
-                        used: "Hint already used for this sound!"
-                    };
-                    const key = !gameState.currentChallenge ? 'noChallenge' : 
-                               !gameState.soundPlayedForCurrentChallenge ? 'notPlayed' : 'used';
-                    showMessageBox(messages[key], 2000);
-                    return;
-                }
-                
-                const aiHint = await getAIHint(gameState.currentChallenge.name, gameState.currentChallenge.expectedElements);
-                DOM.gameInfoDisplay.innerHTML = `✨ AI Hint: ${aiHint} ${gameState.currentChallenge.emoji || ''}`;
-                gameState.hintUsed = true;
-                updateButtonStates();
-            },
-
-            shareDrawing() {
-                if (gameState.lastDrawingId) {
-                    GameModules.Storage.shareDrawing(gameState.lastDrawingId);
-                } else {
-                    showMessageBox("No drawing to share! Submit a drawing first.", 2000);
-                }
-            },
-
-            async submitDrawing() {
-                // Early returns for validation
-                const validations = [
-                    [!gameState.currentChallenge, "Click 'Play Sound' to start!"],
-                    [isCanvasBlank(DOM.canvas), 'Please draw something!'],
-                    [!gameState.soundPlayedForCurrentChallenge, 'Listen to the sound first!'],
-                    [gameState.isAIGenerationInProgress || gameState.isAudioLoading, null]
-                ];
-
-                for (const [condition, message] of validations) {
-                    if (condition) {
-                        if (message) showMessageBox(message, 2500);
-                        return;
-                    }
-                }
-
-                const base64ImageData = DOM.canvas.toDataURL('image/png').split(',')[1];
-                
-                gameState.isAIGenerationInProgress = true;
-                updateButtonStates();
-                DOM.gameInfoDisplay.innerHTML = `✨ AI is analyzing your art... <span class="loading-spinner"></span>`;
-
-                try {
-                    const analysis = await analyzeDrawingWithAI(base64ImageData, gameState.currentChallenge.name, gameState.currentChallenge.expectedElements);
-                    const scoreResult = GameModules.Scoring.calculateScore(analysis, gameState.hintUsed);
-                    
-                    GameModules.Scoring.addScore(scoreResult.total);
-                    gameState.lastDrawingId = GameModules.Storage.saveDrawing(gameState.currentChallenge.name, DOM.canvas.toDataURL('image/png'), scoreResult.total);
-                    
-                    // Optimized result message building
-                    const resultParts = [
-                        `<div class="mb-2">${analysis.feedback}</div>`,
-                        `<div class="mb-2"><strong>Score: ${scoreResult.total}/100</strong></div>`
-                    ];
-
-                    if (analysis.elementsFound?.length) {
-                        resultParts.push(`<div class="mb-1">Found elements: ${analysis.elementsFound.join(', ')}</div>`);
-                    }
-
-                    const scoreMessages = {
-                        80: '<div class="text-green-400">Excellent work! 🌟</div>',
-                        60: '<div class="text-yellow-400">Good job! 👍</div>',
-                        0: '<div class="text-blue-400">Keep practicing! 💪</div>'
-                    };
-
-                    const messageKey = scoreResult.total > 80 ? 80 : scoreResult.total > 60 ? 60 : 0;
-                    resultParts.push(scoreMessages[messageKey]);
-
-                    if (scoreResult.total > 80) triggerFullscreenConfetti();
-                    if (analysis.suggestions) {
-                        resultParts.push(`<div class="mt-2 text-sm opacity-80">${analysis.suggestions}</div>`);
-                    }
-
-                    DOM.gameInfoDisplay.innerHTML = resultParts.join('');
-                } finally {
-                    gameState.isAIGenerationInProgress = false;
-                    updateButtonStates();
-                }
-            },
-
-            toggleTools() {
-                gameState.toolsPanelVisible = !gameState.toolsPanelVisible;
-                const panel = DOM.drawingToolsPanel;
-                const textElement = DOM.toolsToggle.querySelector('span:last-child');
-                
-                panel.classList.toggle('collapsed', !gameState.toolsPanelVisible);
-                textElement.textContent = gameState.toolsPanelVisible ? 'Hide' : 'Tools';
-            },
-
-            toggleControls() {
-                gameState.controlsPanelVisible = !gameState.controlsPanelVisible;
-                const container = DOM.controlsContainer;
-                const textElement = DOM.controlsToggle.querySelector('span:last-child');
-                
-                container.classList.toggle('collapsed', !gameState.controlsPanelVisible);
-                textElement.textContent = gameState.controlsPanelVisible ? 'Hide' : 'Controls';
-            }
-        };
-
-        // Optimized Confetti with Object Pooling
-        const triggerFullscreenConfetti = (() => {
-            const colors = ['#FFD700', '#FFAB00', '#FF6F00', '#FFFFFF', '#FF3D00', '#DD2C00', '#f08080', '#add8e6', '#87CEEB', '#FFB6C1'];
+            const base64ImageData = canvas.toDataURL('image/png').split(',')[1];
             
-            return () => {
-                const confettiCount = 120; // Reduced for better performance
-                const submitButtonRect = DOM.submitDrawingButton.getBoundingClientRect();
-                const originX = submitButtonRect.left + submitButtonRect.width / 2;
-                const originY = submitButtonRect.top + submitButtonRect.height / 2;
+            isAIGenerationInProgress = true;
+            updateButtonStates();
+            gameInfoDisplay.innerHTML = `✨ AI is analyzing your art... <span class="loading-spinner"></span>`;
 
-                for (let i = 0; i < confettiCount; i++) {
-                    const confetti = ObjectPool.getConfetti();
-                    confetti.className = 'fullscreen-confetti-particle';
-                    
-                    const isRibbon = Math.random() > 0.4;
-                    if (isRibbon) confetti.classList.add('ribbon');
-                    
-                    const [pWidth, pHeight] = isRibbon ? 
-                        [Math.random() * 16 + 6, Math.random() * 7 + 4] : 
-                        [Math.random() * 12 + 6, Math.random() * 12 + 6];
-                    
-                    Object.assign(confetti.style, {
-                        width: `${pWidth}px`,
-                        height: `${pHeight}px`,
-                        backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-                        position: 'fixed',
-                        top: `${originY - pHeight / 2}px`,
-                        left: `${originX - pWidth / 2}px`,
-                        pointerEvents: 'none',
-                        zIndex: '10001',
-                        opacity: '1',
-                        borderRadius: isRibbon ? '3px' : '50%'
-                    });
-                    
-                    document.body.appendChild(confetti);
+            // Get AI analysis
+            const analysis = await analyzeDrawingWithAI(base64ImageData, currentChallenge.name, currentChallenge.expectedElements);
+            
+            // Calculate score
+            const scoreResult = GameModules.Scoring.calculateScore(analysis, hintUsed);
+            GameModules.Scoring.addScore(scoreResult.total);
+            
+            // Save drawing
+            lastDrawingId = GameModules.Storage.saveDrawing(currentChallenge.name, canvas.toDataURL('image/png'), scoreResult.total);
+            
+            // Display results
+            let resultMessage = `<div class="mb-2">${analysis.feedback}</div>`;
+            resultMessage += `<div class="mb-2"><strong>Score: ${scoreResult.total}/100</strong></div>`;
+            
+            if (analysis.elementsFound.length > 0) {
+                resultMessage += `<div class="mb-1">Found elements: ${analysis.elementsFound.join(', ')}</div>`;
+            }
+            
+            if (scoreResult.total > 80) {
+                resultMessage += `<div class="text-green-400">Excellent work! 🌟</div>`;
+                triggerFullscreenConfetti();
+            } else if (scoreResult.total > 60) {
+                resultMessage += `<div class="text-yellow-400">Good job! 👍</div>`;
+            } else {
+                resultMessage += `<div class="text-blue-400">Keep practicing! 💪</div>`;
+            }
+            
+            if (analysis.suggestions) {
+                resultMessage += `<div class="mt-2 text-sm opacity-80">${analysis.suggestions}</div>`;
+            }
+            
+            gameInfoDisplay.innerHTML = resultMessage;
+            
+            isAIGenerationInProgress = false;
+            updateButtonStates();
+        });
 
-                    // Optimized animation with fewer calculations
-                    const angle = (Math.random() * Math.PI * 0.8) - (Math.PI * 0.9);
-                    const initialSpeed = Math.random() * 15 + 10;
-                    let vx = Math.cos(angle) * initialSpeed;
-                    let vy = Math.sin(angle) * initialSpeed;
-                    const gravity = 0.5;
-                    const drag = 0.98;
-                    let rotation = Math.random() * 360;
-                    const rotationSpeed = (Math.random() - 0.5) * 20;
-                    let currentX = 0, currentY = 0;
-                    const lifeSpan = Math.random() * 2000 + 1500;
-                    const startTime = performance.now();
+        // --- Doodling Zone ---
+        function getEventCoordinates(event) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
 
-                    const animateParticle = () => {
-                        const elapsedTime = performance.now() - startTime;
-                        if (elapsedTime > lifeSpan) {
-                            ObjectPool.releaseConfetti(confetti);
-                            return;
-                        }
+            if (event.touches && event.touches.length > 0) {
+                clientX = event.touches[0].clientX; 
+                clientY = event.touches[0].clientY;
+            } else {
+                clientX = event.clientX; 
+                clientY = event.clientY;
+            }
+            const x = (clientX - rect.left) * (canvas.width / rect.width);
+            const y = (clientY - rect.top) * (canvas.height / rect.height);
+            return { x, y };
+        }
 
-                        vy += gravity;
-                        vx *= drag;
-                        vy *= drag;
-                        currentX += vx;
-                        currentY += vy;
-                        rotation += rotationSpeed;
+        function startDrawing(e) {
+            if (isAIGenerationInProgress || isAudioLoading) return;
+            
+            // Save state for undo
+            GameModules.DrawingTools.saveState();
+            
+            drawing = true;
+            const { x, y } = getEventCoordinates(e);
+            ctx.beginPath(); 
+            ctx.moveTo(x, y);
+        }
 
-                        confetti.style.transform = `translate(${currentX}px, ${currentY}px) rotate(${rotation}deg)`;
-                        confetti.style.opacity = 1 - (elapsedTime / lifeSpan);
-                        
-                        requestAnimationFrame(animateParticle);
-                    };
-                    requestAnimationFrame(animateParticle);
-                }
-            };
-        })();
+        function stopDrawing() { 
+            if (drawing) {
+                drawing = false;
+                updateButtonStates(); 
+            }
+        }
 
-        // --- Register Event Handlers ---
-        EventManager.register('playSound', GameActions.playSound);
-        EventManager.register('previousSound', GameActions.previousSound);
-        EventManager.register('nextSound', GameActions.nextSound);
-        EventManager.register('giveHint', GameActions.giveHint);
-        EventManager.register('shareDrawing', GameActions.shareDrawing);
-        EventManager.register('submitDrawing', GameActions.submitDrawing);
-        EventManager.register('resetGame', resetGame);
-        EventManager.register('toggleTools', GameActions.toggleTools);
-        EventManager.register('toggleControls', GameActions.toggleControls);
+        function draw(e) {
+            if (!drawing || isAIGenerationInProgress || isAudioLoading) return;
+            const { x, y } = getEventCoordinates(e);
+            ctx.lineTo(x, y); 
+            ctx.stroke();
+        }
+
+        // Mouse & Touch Listeners
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseleave', stopDrawing);
+
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); });
+        canvas.addEventListener('touchend', (e) => { e.preventDefault(); stopDrawing(); });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+        canvas.addEventListener('touchcancel', (e) => { e.preventDefault(); stopDrawing(); });
 
         // --- Initialization ---
         window.addEventListener('load', () => {
-            resizeCanvas();
+            resizeCanvas(); 
             
             // Initialize all modules
             GameModules.DrawingTools.init();
             GameModules.SoundLibrary.init();
             GameModules.Scoring.init();
             ApiKeyManager.init();
-            EventManager.init();
-            
-            // Ensure drawing tools panel is visible on load
-            if (gameState.toolsPanelVisible) {
-                DOM.drawingToolsPanel.classList.remove('collapsed');
-                DOM.toolsToggle.querySelector('span:last-child').textContent = 'Hide';
-            }
-            
-            // Ensure controls panel is visible on load
-            if (gameState.controlsPanelVisible) {
-                DOM.controlsContainer.classList.remove('collapsed');
-                DOM.controlsToggle.querySelector('span:last-child').textContent = 'Hide';
-            }
             
             // Add click handler for API status
             document.getElementById('apiStatus').addEventListener('click', () => {
@@ -2468,22 +2685,18 @@ Be encouraging but honest in your assessment.`;
             // Update responsive drawing tools
             updateResponsiveDrawingTools();
             
-            resetGame();
+            resetGame(); 
             showMessageBox('Enhanced Draw the Sound Game! 🎨✨ Use fullscreen canvas for better drawing experience!', 4000);
         });
         
-        // Optimized resize handler
-        window.addEventListener('resize', (() => {
-            let resizeTimeout;
-            return () => {
-                clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(() => {
-                    resizeCanvas();
-                    updateResponsiveDrawingTools();
-                    CanvasManager.updateRect(); // Update canvas rect on resize
-                }, 150);
-            };
-        })());
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                resizeCanvas();
+                updateResponsiveDrawingTools();
+            }, 150);
+        });
     </script>
 </body>
 </html>
